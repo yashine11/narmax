@@ -2,10 +2,13 @@
   "name": "narmax",
   "private": true,
   "version": "1.0.0",
+  "engines": {
+    "node": ">=22.5.0"
+  },
   "scripts": {
     "install:all": "npm install && npm install --prefix server && npm install --prefix client",
     "dev": "concurrently -n server,client -c red,cyan \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
-    "start": "npm run start --prefix server",
+    "start": "npm install --prefix server && npm run start --prefix server",
     "build": "npm run build --prefix client"
   },
   "devDependencies": {
