@@ -19,6 +19,10 @@ const app = express();
 const PORT = Number(process.env.PORT) || 5000;
 const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
 
+// Trust the first proxy (Back4App / Render / etc.) so express-rate-limit works
+app.set('trust proxy', 1);
+
+
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' },
