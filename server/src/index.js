@@ -40,6 +40,7 @@ app.use(express.json({ limit: '1mb' }));
 fs.mkdirSync(path.join(publicDir, 'uploads'), { recursive: true });
 app.use('/uploads', express.static(path.join(publicDir, 'uploads')));
 
+app.get('/', (_req, res) => res.json({ ok: true, service: 'narmax' }));
 app.get('/api/health', (_req, res) => res.json({ ok: true, service: 'narmax' }));
 app.use('/api', routes);
 
