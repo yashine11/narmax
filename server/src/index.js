@@ -33,8 +33,34 @@ app.use(
 );
 app.use(express.json({ limit: '1mb' }));
 
-fs.mkdirSync(path.join(publicDir, 'uploads'), { recursive: true });
+if (!process.env.VERCEL) {
+  try {
+    fs.mkdirSync(path.join(publicDir, 'uploads'), { recursive: true });
+  } catch (_e) {}
+}
 app.use('/uploads', express.static(path.join(publicDir, 'uploads')));
+
+let initPromise = null;
+function getInitPromise() {
+  if (!initPromise) {
+    initPromise = (async () => {
+      await initSchema();
+      await seedDefaults();
+    })();
+  }
+  return initPromise;
+}
+
+// Ensure database schema is ready on cold starts
+app.use(async (_req, _res, next) => {
+  try {
+    await getInitPromise();
+    next();
+  } catch (err) {
+    console.error('Database initialization error:', err);
+    next(err);
+  }
+});
 
 app.get('/', (_req, res) => res.json({ ok: true, service: 'narmax' }));
 app.get('/api/health', (_req, res) => res.json({ ok: true, service: 'narmax' }));
@@ -74,8 +100,7 @@ async function seedDefaults() {
 
 async function startServer() {
   try {
-    await initSchema();
-    await seedDefaults();
+    await getInitPromise();
     app.listen(PORT, () => {
       console.log(`NARMAX API listening on http://localhost:${PORT}`);
     });
@@ -85,5 +110,10 @@ async function startServer() {
   }
 }
 
-startServer();
+if (!process.env.VERCEL) {
+  startServer();
+}
+
+export default app;
+
 
