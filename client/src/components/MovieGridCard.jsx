@@ -99,6 +99,9 @@ export default function MovieGridCard({
   const [previewMuted, setPreviewMuted] = useState(() => {
     try { return sessionStorage.getItem('narmax:preview-muted') !== 'false'; } catch { return true; }
   });
+  // 'left' | 'right' | 'center' — computed on hover
+  const [edgeAlign, setEdgeAlign] = useState('center');
+  const cardRef = useRef(null);
   const controlsTimerRef = useRef(null);
   const previewTimerRef = useRef(null);
 
@@ -221,6 +224,20 @@ export default function MovieGridCard({
     // Skip hover expansion entirely on touch/mobile
     if (isTouchDevice()) return;
 
+    // Detect if this card is near the left or right edge of the viewport
+    if (cardRef.current) {
+      const rect = cardRef.current.getBoundingClientRect();
+      const vw = window.innerWidth;
+      const margin = 80; // px threshold from screen edge
+      if (rect.left < margin) {
+        setEdgeAlign('left');
+      } else if (vw - rect.right < margin) {
+        setEdgeAlign('right');
+      } else {
+        setEdgeAlign('center');
+      }
+    }
+
     setHovered(true);
     if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current);
     if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
@@ -248,6 +265,7 @@ export default function MovieGridCard({
 
   return (
     <div
+      ref={cardRef}
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}
       className={`group relative z-10 transition-all duration-300 hover:z-[100] ${
@@ -284,10 +302,19 @@ export default function MovieGridCard({
 
       {/* Expanded Hover Card */}
       <div
-        className={`pointer-events-none absolute left-1/2 top-1/2 z-[999] w-[140%] -translate-x-1/2 -translate-y-1/2 overflow-visible rounded-2xl bg-[#0a0a0a] shadow-[0_30px_100px_rgba(0,0,0,0.9)] ring-1 ring-white/20 transition-all duration-400 ease-out sm:w-[180%] ${
+        className={`pointer-events-none absolute top-1/2 z-[999] w-[140%] -translate-y-1/2 overflow-visible rounded-2xl bg-[#0a0a0a] shadow-[0_30px_100px_rgba(0,0,0,0.9)] ring-1 ring-white/20 transition-all duration-400 ease-out sm:w-[180%] ${
           hovered ? 'pointer-events-auto scale-100 opacity-100' : 'scale-75 opacity-0'
+        } ${
+          edgeAlign === 'left'
+            ? 'left-0'
+            : edgeAlign === 'right'
+              ? 'right-0'
+              : 'left-1/2 -translate-x-1/2'
         }`}
-        style={{ transformOrigin: 'center center', willChange: 'transform' }}
+        style={{
+          transformOrigin: edgeAlign === 'left' ? 'left center' : edgeAlign === 'right' ? 'right center' : 'center center',
+          willChange: 'transform',
+        }}
       >
         <div className="relative aspect-video w-full overflow-hidden rounded-t-2xl">
           {showPreview && previewUrl ? (
