@@ -255,9 +255,12 @@ export default function MovieGridCard({
       }`}
     >
       {/* Base Card (Static) */}
-      <div className={`h-full w-full overflow-hidden rounded-xl bg-zinc-900 ring-1 ring-white/10 transition-all duration-300 ${
-        completed ? 'opacity-70' : ''
-      }`}>
+      <Link
+        to={href}
+        className={`block h-full w-full overflow-hidden rounded-xl bg-zinc-900 ring-1 ring-white/10 transition-all duration-300 ${
+          completed ? 'opacity-70' : ''
+        }`}
+      >
         {baseImage ? (
           <img src={isLandscape ? hoverImage : baseImage} alt="" className="h-full w-full object-cover" loading="lazy" />
         ) : (
@@ -277,7 +280,7 @@ export default function MovieGridCard({
             <div className="h-full bg-narmax-red" style={{ width: `${progress}%` }} />
           </div>
         )}
-      </div>
+      </Link>
 
       {/* Expanded Hover Card */}
       <div

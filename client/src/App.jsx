@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import Layout from './components/Layout.jsx';
 import KidsShell from './components/kids/KidsShell.jsx';
 import Home from './pages/Home.jsx';
@@ -58,6 +59,7 @@ export default function App() {
 
       <Route path="/watch/:id" element={<Watch />} />
     </Routes>
+    <Analytics />
   </>
   );
 }
