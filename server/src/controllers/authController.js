@@ -23,10 +23,11 @@ function getRedirectBase(req) {
   if (host.includes('localhost')) {
     return 'http://localhost:5000';
   }
-  return (
-    process.env.BACKEND_URL ||
-    'https://narmax-backend-haae5wvrj-novadesigne6-3092s-projects.vercel.app'
-  );
+  if (host && !host.includes('haae5wvrj')) {
+    const proto = req.headers['x-forwarded-proto'] || 'https';
+    return `${proto}://${host}`;
+  }
+  return process.env.BACKEND_URL || 'https://narmax-backend.vercel.app';
 }
 
 function parseStateOrigin(state) {

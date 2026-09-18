@@ -5,7 +5,10 @@ export default function SSOButtons({ mode = 'Sign in' }) {
 
   const handleOAuth = (provider) => {
     setLoadingProvider(provider);
-    const apiUrl = import.meta.env.VITE_API_URL || '';
+    let apiUrl = import.meta.env.VITE_API_URL || '';
+    if (!apiUrl || apiUrl.includes('haae5wvrj')) {
+      apiUrl = 'https://narmax-backend.vercel.app';
+    }
     const origin = window.location.origin;
     window.location.href = `${apiUrl}/api/auth/${provider}?origin=${encodeURIComponent(origin)}`;
   };
