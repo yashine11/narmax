@@ -10,18 +10,25 @@ const isTurso = Boolean(process.env.TURSO_DATABASE_URL);
 
 let clientUrl = process.env.TURSO_DATABASE_URL;
 if (!isTurso) {
+  if (process.env.VERCEL) {
+    console.error('WARNING: TURSO_DATABASE_URL is not set on Vercel!');
+  }
   const dbPath = process.env.DATABASE_PATH
     ? path.isAbsolute(process.env.DATABASE_PATH)
       ? process.env.DATABASE_PATH
       : path.join(rootDir, process.env.DATABASE_PATH)
     : path.join(rootDir, 'database', 'narmax.db');
 
-  fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+  if (!process.env.VERCEL) {
+    try {
+      fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+    } catch (_e) {}
+  }
   clientUrl = `file:${dbPath.replace(/\\/g, '/')}`;
 }
 
 const client = createClient({
-  url: clientUrl,
+  url: clientUrl || 'file:local.db',
   authToken: process.env.TURSO_AUTH_TOKEN,
 });
 
@@ -55,7 +62,18 @@ const db = {
   },
 
   async exec(sql) {
-    return client.executeMultiple(sql);
+    const statements = sql
+      .split(';')
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+
+    for (const stmt of statements) {
+      try {
+        await client.execute(stmt);
+      } catch (err) {
+        console.warn('Exec statement notice:', err.message);
+      }
+    }
   },
 
   prepare(sql) {

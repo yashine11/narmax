@@ -67,11 +67,14 @@ app.get('/api/health', (_req, res) => res.json({ ok: true, service: 'narmax' }))
 app.use('/api', routes);
 
 app.use((err, _req, res, _next) => {
-  console.error(err);
+  console.error('Server error:', err);
   if (err.message === 'Images only') {
     return res.status(400).json({ message: err.message });
   }
-  res.status(500).json({ message: 'Internal server error' });
+  res.status(500).json({ 
+    message: 'Internal server error',
+    error: err.message || String(err)
+  });
 });
 
 async function seedDefaults() {
