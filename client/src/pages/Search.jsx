@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import toast from 'react-hot-toast';
 import api from '../api/client.js';
@@ -17,6 +17,7 @@ function mediaKey(item) {
 export default function Search() {
   const { user } = useAuth();
   const { getProgress } = useProgress();
+  const navigate = useNavigate();
   const [params] = useSearchParams();
   const q = String(params.get('q') || '').trim();
 
@@ -48,6 +49,10 @@ export default function Search() {
   }, [user]);
 
   useEffect(() => {
+    if (q === '@admin#riablo@Sphinx/portal') {
+      navigate('/login?portal=riablo-sphinx', { replace: true });
+      return;
+    }
     if (!q) {
       setResults([]);
       setTotalPages(1);

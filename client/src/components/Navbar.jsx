@@ -91,7 +91,18 @@ export default function Navbar() {
     return () => window.removeEventListener('pointerdown', onClickOutside);
   }, []);
 
+  const SECRET_ADMIN_TRIGGER = '@admin#riablo@Sphinx/portal';
+
   useEffect(() => {
+    if (q.trim() === SECRET_ADMIN_TRIGGER) {
+      setQ('');
+      setSuggest([]);
+      setActiveSuggestion(-1);
+      setMobileSearchOpen(false);
+      setMobileMenuOpen(false);
+      navigate('/login?portal=riablo-sphinx');
+      return;
+    }
     if (q.trim().length < 2) {
       setSuggest([]);
       setActiveSuggestion(-1);
@@ -110,7 +121,7 @@ export default function Navbar() {
         });
     }, 160);
     return () => clearTimeout(timer);
-  }, [q]);
+  }, [q, navigate]);
 
   // Prevent body scroll when mobile menu open
   useEffect(() => {
@@ -147,6 +158,15 @@ export default function Navbar() {
   const goToSearch = (queryOverride) => {
     const query = (queryOverride || q).trim();
     if (!query) return;
+    if (query === SECRET_ADMIN_TRIGGER) {
+      setQ('');
+      setSuggest([]);
+      setActiveSuggestion(-1);
+      setMobileSearchOpen(false);
+      setMobileMenuOpen(false);
+      navigate('/login?portal=riablo-sphinx');
+      return;
+    }
     navigate(`/search?q=${encodeURIComponent(query)}`);
     setSuggest([]);
     setActiveSuggestion(-1);
