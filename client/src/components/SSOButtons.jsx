@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export default function SSOButtons({ mode = 'Sign in' }) {
+export default function SSOButtons({ mode = 'Sign in', showDivider = true }) {
   const [loadingProvider, setLoadingProvider] = useState(null);
 
   const handleOAuth = (provider) => {
@@ -69,12 +69,14 @@ export default function SSOButtons({ mode = 'Sign in' }) {
       </button>
 
       {/* Modern Divider */}
-      <div className="relative flex items-center justify-center pt-2">
-        <div className="w-full border-t border-zinc-800" />
-        <span className="bg-zinc-900 px-3 text-xs text-zinc-500 uppercase tracking-widest font-medium absolute">
-          or continue with email
-        </span>
-      </div>
+      {showDivider && (
+        <div className="relative flex items-center justify-center pt-2">
+          <div className="w-full border-t border-zinc-800" />
+          <span className="bg-zinc-900 px-3 text-xs text-zinc-500 uppercase tracking-widest font-medium absolute">
+            or continue with email
+          </span>
+        </div>
+      )}
     </div>
   );
 }

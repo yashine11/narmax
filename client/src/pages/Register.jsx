@@ -1,95 +1,49 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext.jsx';
-import toast from 'react-hot-toast';
+import { Link } from 'react-router-dom';
 import SSOButtons from '../components/SSOButtons.jsx';
 
 export default function Register() {
-  const { register } = useAuth();
-  const navigate = useNavigate();
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [busy, setBusy] = useState(false);
-
-  const submit = async (e) => {
-    e.preventDefault();
-    const cleanEmail = email.trim().toLowerCase();
-    const localPart = cleanEmail.split('@')[0] || '';
-
-    // Quick client check for fake emails like 1234@...
-    if (/^\d+$/.test(localPart)) {
-      toast.error('Please enter a real email address (usernames cannot be all numbers)');
-      return;
-    }
-
-    if (password.length < 8) {
-      toast.error('Password must be at least 8 characters');
-      return;
-    }
-    setBusy(true);
-    try {
-      await register({ username, email: cleanEmail, password });
-      toast.success('Account created');
-      navigate('/');
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Registration failed');
-    } finally {
-      setBusy(false);
-    }
-  };
-
   return (
-    <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-zinc-900/90 border border-zinc-800 rounded-xl p-8 shadow-card backdrop-blur-md">
-        <h1 className="text-3xl font-black mb-2">Join NARMAX</h1>
-        <p className="text-zinc-400 text-sm mb-6">
+    <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center px-4 py-8">
+      <div className="w-full max-w-md bg-zinc-900/90 border border-zinc-800 rounded-2xl p-8 shadow-2xl backdrop-blur-md">
+        {/* Header */}
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-narmax-red/10 border border-narmax-red/30 rounded-xl mb-3 text-narmax-red">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </div>
+          <h1 className="text-3xl font-black text-white tracking-tight">Join NARMAX</h1>
+          <p className="text-zinc-400 text-sm mt-2">
+            Create your free account in seconds with verified Google or Discord sign-in.
+          </p>
+        </div>
+
+        {/* Benefits Box */}
+        <div className="bg-black/50 border border-zinc-800/80 rounded-xl p-4 mb-6 space-y-2.5">
+          <div className="flex items-center gap-2.5 text-xs text-zinc-300">
+            <span className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-bold">✓</span>
+            <span>100% Real, verified accounts only</span>
+          </div>
+          <div className="flex items-center gap-2.5 text-xs text-zinc-300">
+            <span className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-bold">✓</span>
+            <span>No passwords to remember or forget</span>
+          </div>
+          <div className="flex items-center gap-2.5 text-xs text-zinc-300">
+            <span className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-bold">✓</span>
+            <span>Sync watchlist, history & favorites across all devices</span>
+          </div>
+        </div>
+
+        {/* SSO Buttons */}
+        <SSOButtons mode="Sign up" showDivider={false} />
+
+        {/* Footer */}
+        <div className="text-center pt-4 border-t border-zinc-800/80 text-xs text-zinc-400">
           Already have an account?{' '}
-          <Link to="/login" className="text-white hover:underline">
+          <Link to="/login" className="text-white hover:text-narmax-red font-semibold transition underline">
             Sign in
           </Link>
-        </p>
-
-        <SSOButtons mode="Sign up" />
-
-        <form onSubmit={submit} className="space-y-4">
-          <div>
-            <label className="text-xs text-zinc-400 block mb-1">Username</label>
-            <input
-              required
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full bg-black border border-zinc-700 rounded px-3 py-2 focus:border-narmax-red outline-none"
-            />
-          </div>
-          <div>
-            <label className="text-xs text-zinc-400 block mb-1">Email</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-black border border-zinc-700 rounded px-3 py-2 focus:border-narmax-red outline-none"
-            />
-          </div>
-          <div>
-            <label className="text-xs text-zinc-400 block mb-1">Password (min 8)</label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-black border border-zinc-700 rounded px-3 py-2 focus:border-narmax-red outline-none"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={busy}
-            className="w-full bg-narmax-red hover:bg-red-700 py-3 rounded font-bold transition disabled:opacity-50"
-          >
-            {busy ? '…' : 'Create account'}
-          </button>
-        </form>
+        </div>
       </div>
     </div>
   );

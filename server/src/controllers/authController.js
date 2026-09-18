@@ -62,42 +62,10 @@ async function generateUniqueUsername(preferredName, email) {
   return candidate;
 }
 
-export async function register(req, res) {
-  try {
-    const { username, email, password } = req.body;
-    if (!username || !email || !password) {
-      return res.status(400).json({ message: 'Username, email, and password are required' });
-    }
-    if (password.length < 8) {
-      return res.status(400).json({ message: 'Password must be at least 8 characters' });
-    }
-
-    // Strict email check (blocks fake emails, numeric usernames, disposable domains, and checks DNS MX)
-    const emailCheck = await validateEmail(email);
-    if (!emailCheck.valid) {
-      return res.status(400).json({ message: emailCheck.message });
-    }
-
-    if ((await findUserByEmail(email)) || (await findUserByUsername(username))) {
-      return res.status(409).json({ message: 'Email or username already in use' });
-    }
-    const passwordHash = await bcrypt.hash(password, 12);
-    const user = await createUser({ username, email, passwordHash });
-    const token = signToken(user);
-    return res.status(201).json({
-      token,
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        avatar: user.avatar,
-        role: user.role,
-      },
-    });
-  } catch (e) {
-    console.error(e);
-    return res.status(500).json({ message: 'Registration failed' });
-  }
+export async function register(_req, res) {
+  return res.status(403).json({
+    message: 'Manual registration is disabled. Please sign up using verified Google or Discord login.',
+  });
 }
 
 export async function login(req, res) {
