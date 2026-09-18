@@ -1,14 +1,14 @@
 import { db } from '../config/database.js';
 
-export function recordWatch(userId, movieId) {
-  upsertWatchProgress(userId, movieId, 100, true);
+export async function recordWatch(userId, movieId) {
+  await upsertWatchProgress(userId, movieId, 100, true);
 }
 
-export function upsertWatchProgress(userId, movieId, progressPercent, completed) {
+export async function upsertWatchProgress(userId, movieId, progressPercent, completed) {
   const p = Math.min(100, Math.max(0, Number(progressPercent) || 0));
   const done = completed ? 1 : 0;
   const finalP = done ? 100 : p;
-  db.prepare(
+  await db.prepare(
     `INSERT INTO watch_history (user_id, movie_id, progress_percent, completed, watched_at)
      VALUES (?, ?, ?, ?, datetime('now'))
      ON CONFLICT(user_id, movie_id) DO UPDATE SET
@@ -18,8 +18,8 @@ export function upsertWatchProgress(userId, movieId, progressPercent, completed)
   ).run(userId, movieId, finalP, done);
 }
 
-export function listHistory(userId, limit = 50) {
-  return db
+export async function listHistory(userId, limit = 50) {
+  return await db
     .prepare(
       `SELECT m.*, w.watched_at, w.progress_percent, w.completed FROM watch_history w
        JOIN movies m ON m.id = w.movie_id
@@ -30,8 +30,8 @@ export function listHistory(userId, limit = 50) {
     .all(userId, limit);
 }
 
-export function listProgressByTmdb(userId) {
-  return db
+export async function listProgressByTmdb(userId) {
+  return await db
     .prepare(
       `SELECT m.tmdb_id, m.media_type, w.progress_percent, w.completed
        FROM watch_history w
@@ -40,3 +40,4 @@ export function listProgressByTmdb(userId) {
     )
     .all(userId);
 }
+

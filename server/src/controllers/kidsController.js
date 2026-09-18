@@ -28,7 +28,7 @@ export async function enter(req, res) {
   if (!code || String(code).length < 2) {
     return res.status(400).json({ message: 'Code required' });
   }
-  const row = getKidsCodeRow();
+  const row = await getKidsCodeRow();
   if (!row) {
     return res.status(503).json({ message: 'Kids access not configured' });
   }
@@ -42,7 +42,7 @@ export async function enter(req, res) {
 export async function exitKids(req, res) {
   const { code } = req.body;
   if (!code) return res.status(400).json({ message: 'Code required' });
-  const row = getKidsCodeRow();
+  const row = await getKidsCodeRow();
   if (!row) return res.status(503).json({ message: 'Not configured' });
   const ok = await bcrypt.compare(String(code), row.access_code);
   if (!ok) return res.status(401).json({ message: 'Invalid code' });
@@ -55,7 +55,7 @@ export async function setCode(req, res) {
     return res.status(400).json({ message: 'Code must be at least 4 characters' });
   }
   const hash = await bcrypt.hash(String(code), 12);
-  setKidsCodeHash(hash);
+  await setKidsCodeHash(hash);
   return res.json({ ok: true });
 }
 
@@ -73,3 +73,4 @@ export async function kidsFeed(req, res) {
     return res.status(502).json({ message: e.message || 'Failed to load kids content' });
   }
 }
+

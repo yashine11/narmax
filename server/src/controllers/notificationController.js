@@ -1,9 +1,9 @@
 import { db } from '../config/database.js';
 
-export function list(req, res) {
+export async function list(req, res) {
   try {
     const userId = req.user.id;
-    const notifications = db.prepare(`
+    const notifications = await db.prepare(`
       SELECT * FROM notifications 
       WHERE user_id = ? 
       ORDER BY created_at DESC 
@@ -17,15 +17,15 @@ export function list(req, res) {
   }
 }
 
-export function markAsRead(req, res) {
+export async function markAsRead(req, res) {
   try {
     const userId = req.user.id;
     const { id } = req.params;
     
     if (id === 'all') {
-      db.prepare('UPDATE notifications SET is_read = 1 WHERE user_id = ?').run(userId);
+      await db.prepare('UPDATE notifications SET is_read = 1 WHERE user_id = ?').run(userId);
     } else {
-      db.prepare('UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?').run(id, userId);
+      await db.prepare('UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?').run(id, userId);
     }
     
     return res.json({ success: true });
@@ -35,9 +35,9 @@ export function markAsRead(req, res) {
   }
 }
 
-export function createNotification(userId, type, title, message, link) {
+export async function createNotification(userId, type, title, message, link) {
   try {
-    db.prepare(`
+    await db.prepare(`
       INSERT INTO notifications (user_id, type, title, message, link)
       VALUES (?, ?, ?, ?, ?)
     `).run(userId, type, title, message, link);
@@ -45,3 +45,4 @@ export function createNotification(userId, type, title, message, link) {
     console.error('Failed to create notification:', e);
   }
 }
+

@@ -1,13 +1,13 @@
 import { db } from '../config/database.js';
 
-export function ensureMovieFromTmdb(row) {
+export async function ensureMovieFromTmdb(row) {
   const mediaType = row.media_type === 'tv' ? 'tv' : 'movie';
-  const existing = db
+  const existing = await db
     .prepare('SELECT * FROM movies WHERE tmdb_id = ? AND media_type = ?')
     .get(row.tmdb_id, mediaType);
   if (existing) return existing;
 
-  const info = db
+  const info = await db
     .prepare(
       `INSERT INTO movies (title, description, category, image, video_url, rating, tmdb_id, media_type)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
@@ -24,26 +24,26 @@ export function ensureMovieFromTmdb(row) {
     );
 
   const rid = Number(info.lastInsertRowid);
-  return db.prepare('SELECT * FROM movies WHERE id = ?').get(rid);
+  return await db.prepare('SELECT * FROM movies WHERE id = ?').get(rid);
 }
 
-export function getMovieById(id) {
-  return db.prepare('SELECT * FROM movies WHERE id = ?').get(id);
+export async function getMovieById(id) {
+  return await db.prepare('SELECT * FROM movies WHERE id = ?').get(id);
 }
 
-export function getMovieByTmdbId(tmdbId, mediaType = 'movie') {
+export async function getMovieByTmdbId(tmdbId, mediaType = 'movie') {
   const mt = mediaType === 'tv' ? 'tv' : 'movie';
-  return db.prepare('SELECT * FROM movies WHERE tmdb_id = ? AND media_type = ?').get(tmdbId, mt);
+  return await db.prepare('SELECT * FROM movies WHERE tmdb_id = ? AND media_type = ?').get(tmdbId, mt);
 }
 
-export function listMoviesAdmin({ limit = 100, offset = 0 } = {}) {
-  return db
+export async function listMoviesAdmin({ limit = 100, offset = 0 } = {}) {
+  return await db
     .prepare('SELECT * FROM movies ORDER BY id DESC LIMIT ? OFFSET ?')
     .all(limit, offset);
 }
 
-export function createMovie(data) {
-  const info = db
+export async function createMovie(data) {
+  const info = await db
     .prepare(
       `INSERT INTO movies (title, description, category, image, video_url, rating, tmdb_id, media_type)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
@@ -58,10 +58,10 @@ export function createMovie(data) {
       data.tmdb_id ?? null,
       data.media_type === 'tv' ? 'tv' : 'movie'
     );
-  return getMovieById(Number(info.lastInsertRowid));
+  return await getMovieById(Number(info.lastInsertRowid));
 }
 
-export function updateMovie(id, data) {
+export async function updateMovie(id, data) {
   const fields = [];
   const vals = [];
   ['title', 'description', 'category', 'image', 'video_url', 'rating', 'tmdb_id', 'media_type'].forEach((k) => {
@@ -71,12 +71,13 @@ export function updateMovie(id, data) {
       vals.push(v);
     }
   });
-  if (!fields.length) return getMovieById(id);
+  if (!fields.length) return await getMovieById(id);
   vals.push(id);
-  db.prepare(`UPDATE movies SET ${fields.join(', ')} WHERE id = ?`).run(...vals);
-  return getMovieById(id);
+  await db.prepare(`UPDATE movies SET ${fields.join(', ')} WHERE id = ?`).run(...vals);
+  return await getMovieById(id);
 }
 
-export function deleteMovie(id) {
-  db.prepare('DELETE FROM movies WHERE id = ?').run(id);
+export async function deleteMovie(id) {
+  await db.prepare('DELETE FROM movies WHERE id = ?').run(id);
 }
+

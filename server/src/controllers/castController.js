@@ -1,9 +1,9 @@
 import { db } from '../config/database.js';
 
-export function listLiked(req, res) {
+export async function listLiked(req, res) {
   try {
     const userId = req.user.id;
-    const cast = db.prepare(`
+    const cast = await db.prepare(`
       SELECT * FROM liked_cast 
       WHERE user_id = ? 
       ORDER BY created_at DESC
@@ -16,7 +16,7 @@ export function listLiked(req, res) {
   }
 }
 
-export function toggleLike(req, res) {
+export async function toggleLike(req, res) {
   try {
     const userId = req.user.id;
     const { cast_id, name, profile_path } = req.body;
@@ -25,13 +25,13 @@ export function toggleLike(req, res) {
       return res.status(400).json({ message: 'Missing cast details' });
     }
     
-    const existing = db.prepare('SELECT id FROM liked_cast WHERE user_id = ? AND cast_id = ?').get(userId, cast_id);
+    const existing = await db.prepare('SELECT id FROM liked_cast WHERE user_id = ? AND cast_id = ?').get(userId, cast_id);
     
     if (existing) {
-      db.prepare('DELETE FROM liked_cast WHERE id = ?').run(existing.id);
+      await db.prepare('DELETE FROM liked_cast WHERE id = ?').run(existing.id);
       return res.json({ success: true, action: 'removed' });
     } else {
-      db.prepare(`
+      await db.prepare(`
         INSERT INTO liked_cast (user_id, cast_id, name, profile_path)
         VALUES (?, ?, ?, ?)
       `).run(userId, cast_id, name, profile_path || null);
@@ -43,14 +43,15 @@ export function toggleLike(req, res) {
   }
 }
 
-export function checkStatus(req, res) {
+export async function checkStatus(req, res) {
   try {
     const userId = req.user.id;
     const { cast_id } = req.query;
-    const existing = db.prepare('SELECT id FROM liked_cast WHERE user_id = ? AND cast_id = ?').get(userId, cast_id);
+    const existing = await db.prepare('SELECT id FROM liked_cast WHERE user_id = ? AND cast_id = ?').get(userId, cast_id);
     return res.json({ liked: !!existing });
   } catch (e) {
     console.error(e);
     return res.status(500).json({ message: 'Failed to check status' });
   }
 }
+

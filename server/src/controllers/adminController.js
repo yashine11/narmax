@@ -5,27 +5,27 @@ import * as userModel from '../models/userModel.js';
 import * as commentModel from '../models/commentModel.js';
 import { delCachePattern } from '../services/cacheService.js';
 
-export function dashboard(req, res) {
-  const users = db.prepare('SELECT COUNT(*) as n FROM users').get().n;
-  const movies = db.prepare('SELECT COUNT(*) as n FROM movies').get().n;
-  const comments = db.prepare('SELECT COUNT(*) as n FROM comments').get().n;
-  const favorites = db.prepare('SELECT COUNT(*) as n FROM favorites').get().n;
+export async function dashboard(req, res) {
+  const users = (await db.prepare('SELECT COUNT(*) as n FROM users').get())?.n ?? 0;
+  const movies = (await db.prepare('SELECT COUNT(*) as n FROM movies').get())?.n ?? 0;
+  const comments = (await db.prepare('SELECT COUNT(*) as n FROM comments').get())?.n ?? 0;
+  const favorites = (await db.prepare('SELECT COUNT(*) as n FROM favorites').get())?.n ?? 0;
   return res.json({ users, movies, comments, favorites });
 }
 
-export function listMovies(req, res) {
-  const rows = movieModel.listMoviesAdmin({ limit: 500, offset: 0 });
+export async function listMovies(req, res) {
+  const rows = await movieModel.listMoviesAdmin({ limit: 500, offset: 0 });
   return res.json({ movies: rows });
 }
 
-export function createMovie(req, res) {
+export async function createMovie(req, res) {
   const b = req.body;
   if (!b.title) return res.status(400).json({ message: 'Title required' });
   let image = b.image || '';
   if (req.file) {
     image = `/uploads/${req.file.filename}`;
   }
-  const row = movieModel.createMovie({
+  const row = await movieModel.createMovie({
     title: b.title,
     description: b.description,
     category: b.category,
@@ -39,7 +39,7 @@ export function createMovie(req, res) {
   return res.status(201).json({ movie: row });
 }
 
-export function patchMovie(req, res) {
+export async function patchMovie(req, res) {
   const id = Number(req.params.id);
   if (!id) return res.status(400).json({ message: 'Invalid id' });
   const b = req.body;
@@ -49,21 +49,21 @@ export function patchMovie(req, res) {
   }
   if (data.rating !== undefined) data.rating = Number(data.rating);
   if (data.tmdb_id !== undefined) data.tmdb_id = data.tmdb_id ? Number(data.tmdb_id) : null;
-  const row = movieModel.updateMovie(id, data);
+  const row = await movieModel.updateMovie(id, data);
   if (!row) return res.status(404).json({ message: 'Not found' });
   delCachePattern('tmdb:');
   return res.json({ movie: row });
 }
 
-export function removeMovie(req, res) {
+export async function removeMovie(req, res) {
   const id = Number(req.params.id);
-  movieModel.deleteMovie(id);
+  await movieModel.deleteMovie(id);
   delCachePattern('tmdb:');
   return res.json({ ok: true });
 }
 
-export function listUsers(req, res) {
-  const rows = userModel.listUsersAdmin({ limit: 500, offset: 0 });
+export async function listUsers(req, res) {
+  const rows = await userModel.listUsersAdmin({ limit: 500, offset: 0 });
   return res.json({ users: rows });
 }
 
@@ -82,7 +82,7 @@ export async function patchUser(req, res) {
     data.avatar = `/uploads/${req.file.filename}`;
   }
   try {
-    const row = userModel.updateUserAdmin(id, data);
+    const row = await userModel.updateUserAdmin(id, data);
     if (!row) return res.status(404).json({ message: 'Not found' });
     return res.json({
       user: {
@@ -102,17 +102,17 @@ export async function patchUser(req, res) {
   }
 }
 
-export function removeUser(req, res) {
+export async function removeUser(req, res) {
   const id = Number(req.params.id);
   if (id === req.user.id) {
     return res.status(400).json({ message: 'Cannot delete yourself' });
   }
-  userModel.deleteUser(id);
+  await userModel.deleteUser(id);
   return res.json({ ok: true });
 }
 
-export function listComments(req, res) {
-  const rows = db
+export async function listComments(req, res) {
+  const rows = await db
     .prepare(
       `SELECT c.*, u.username, m.title as movie_title FROM comments c
        JOIN users u ON u.id = c.user_id
@@ -124,8 +124,9 @@ export function listComments(req, res) {
   return res.json({ comments: rows });
 }
 
-export function removeComment(req, res) {
+export async function removeComment(req, res) {
   const id = Number(req.params.id);
-  commentModel.deleteComment(id);
+  await commentModel.deleteComment(id);
   return res.json({ ok: true });
 }
+

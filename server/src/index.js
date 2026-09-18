@@ -12,16 +12,12 @@ import routes from './routes/index.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.join(__dirname, '..', 'public');
 
-initSchema();
-seedDefaults();
-
 const app = express();
 const PORT = Number(process.env.PORT) || 5000;
 const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
 
-// Trust the first proxy (Back4App / Render / etc.) so express-rate-limit works
+// Trust the first proxy (Back4App / Render / Koyeb / etc.) so express-rate-limit works
 app.set('trust proxy', 1);
-
 
 app.use(
   helmet({
@@ -52,28 +48,42 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ message: 'Internal server error' });
 });
 
-app.listen(PORT, () => {
-  console.log(`NARMAX API listening on http://localhost:${PORT}`);
-});
-
-function seedDefaults() {
+async function seedDefaults() {
   const adminEmail = (process.env.ADMIN_EMAIL || 'admin@narmax.local').toLowerCase();
-  const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(adminEmail);
+  const existing = await db.prepare('SELECT id FROM users WHERE email = ?').get(adminEmail);
   if (!existing) {
     const password = process.env.ADMIN_PASSWORD || 'ChangeMeAdmin123!';
-    const hash = bcrypt.hashSync(password, 12);
-    db.prepare(
-      `INSERT INTO users (username, email, password, avatar, role)
-       VALUES (?, ?, ?, '/uploads/default-avatar.svg', 'admin')`
-    ).run(process.env.ADMIN_USERNAME || 'admin', adminEmail, hash);
+    const hash = await bcrypt.hash(password, 12);
+    await db
+      .prepare(
+        `INSERT INTO users (username, email, password, avatar, role)
+         VALUES (?, ?, ?, '/uploads/default-avatar.svg', 'admin')`
+      )
+      .run(process.env.ADMIN_USERNAME || 'admin', adminEmail, hash);
     console.log('Seeded admin user:', adminEmail);
   }
 
-  const kids = db.prepare('SELECT id FROM kids_access LIMIT 1').get();
+  const kids = await db.prepare('SELECT id FROM kids_access LIMIT 1').get();
   if (!kids) {
     const code = process.env.KIDS_DEFAULT_CODE || '1234';
-    const kh = bcrypt.hashSync(String(code), 12);
-    db.prepare('INSERT INTO kids_access (access_code) VALUES (?)').run(kh);
+    const kh = await bcrypt.hash(String(code), 12);
+    await db.prepare('INSERT INTO kids_access (access_code) VALUES (?)').run(kh);
     console.log('Seeded kids access code (change in production):', code);
   }
 }
+
+async function startServer() {
+  try {
+    await initSchema();
+    await seedDefaults();
+    app.listen(PORT, () => {
+      console.log(`NARMAX API listening on http://localhost:${PORT}`);
+    });
+  } catch (err) {
+    console.error('Fatal server startup error:', err);
+    process.exit(1);
+  }
+}
+
+startServer();
+

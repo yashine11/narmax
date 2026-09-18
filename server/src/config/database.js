@@ -1,25 +1,85 @@
-import { DatabaseSync } from 'node:sqlite';
+import { createClient } from '@libsql/client';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.join(__dirname, '..', '..', '..');
-const dbPath = process.env.DATABASE_PATH
-  ? path.isAbsolute(process.env.DATABASE_PATH)
-    ? process.env.DATABASE_PATH
-    : path.join(rootDir, process.env.DATABASE_PATH)
-  : path.join(rootDir, 'database', 'narmax.db');
 
-fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+const isTurso = Boolean(process.env.TURSO_DATABASE_URL);
 
-const db = new DatabaseSync(dbPath);
+let clientUrl = process.env.TURSO_DATABASE_URL;
+if (!isTurso) {
+  const dbPath = process.env.DATABASE_PATH
+    ? path.isAbsolute(process.env.DATABASE_PATH)
+      ? process.env.DATABASE_PATH
+      : path.join(rootDir, process.env.DATABASE_PATH)
+    : path.join(rootDir, 'database', 'narmax.db');
 
-export function initSchema() {
-  db.exec('PRAGMA journal_mode = WAL;');
-  db.exec('PRAGMA foreign_keys = ON;');
+  fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+  clientUrl = `file:${dbPath.replace(/\\/g, '/')}`;
+}
 
-  db.exec(`
+const client = createClient({
+  url: clientUrl,
+  authToken: process.env.TURSO_AUTH_TOKEN,
+});
+
+function normalizeArgs(args) {
+  if (args.length === 1 && Array.isArray(args[0])) {
+    args = args[0];
+  }
+  return args.map((v) => (v === undefined ? null : v));
+}
+
+const db = {
+  rawClient: client,
+
+  async get(sql, ...args) {
+    const res = await client.execute({ sql, args: normalizeArgs(args) });
+    return res.rows.length > 0 ? res.rows[0] : undefined;
+  },
+
+  async all(sql, ...args) {
+    const res = await client.execute({ sql, args: normalizeArgs(args) });
+    return Array.from(res.rows);
+  },
+
+  async run(sql, ...args) {
+    const res = await client.execute({ sql, args: normalizeArgs(args) });
+    return {
+      lastInsertRowid: res.lastInsertRowid !== undefined ? Number(res.lastInsertRowid) : undefined,
+      changes: res.rowsAffected,
+      rowsAffected: res.rowsAffected,
+    };
+  },
+
+  async exec(sql) {
+    return client.executeMultiple(sql);
+  },
+
+  prepare(sql) {
+    return {
+      get: (...args) => db.get(sql, ...args),
+      all: (...args) => db.all(sql, ...args),
+      run: (...args) => db.run(sql, ...args),
+    };
+  },
+};
+
+export async function initSchema() {
+  try {
+    await client.execute('PRAGMA journal_mode = WAL;');
+  } catch (_e) {
+    // Ignored in remote cloud environments
+  }
+  try {
+    await client.execute('PRAGMA foreign_keys = ON;');
+  } catch (_e) {
+    // Ignored in remote cloud environments
+  }
+
+  await db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT NOT NULL UNIQUE,
@@ -119,45 +179,46 @@ export function initSchema() {
     );
     CREATE INDEX IF NOT EXISTS idx_liked_cast_user ON liked_cast(user_id);
   `);
-  migrateMoviesColumns();
-  migrateCommentsAndWatch();
+
+  await migrateMoviesColumns();
+  await migrateCommentsAndWatch();
 }
 
-function migrateMoviesColumns() {
-  const cols = db.prepare('PRAGMA table_info(movies)').all();
+async function migrateMoviesColumns() {
+  const cols = await db.prepare('PRAGMA table_info(movies)').all();
   const names = new Set(cols.map((c) => c.name));
   if (!names.has('media_type')) {
     try {
-      db.exec("ALTER TABLE movies ADD COLUMN media_type TEXT NOT NULL DEFAULT 'movie'");
+      await db.exec("ALTER TABLE movies ADD COLUMN media_type TEXT NOT NULL DEFAULT 'movie'");
     } catch (e) {
       console.warn('movies.media_type migration skipped:', e.message);
     }
   }
 }
 
-function migrateCommentsAndWatch() {
-  const ccols = db.prepare('PRAGMA table_info(comments)').all();
+async function migrateCommentsAndWatch() {
+  const ccols = await db.prepare('PRAGMA table_info(comments)').all();
   const cnames = new Set(ccols.map((c) => c.name));
   if (!cnames.has('parent_id')) {
     try {
-      db.exec('ALTER TABLE comments ADD COLUMN parent_id INTEGER');
+      await db.exec('ALTER TABLE comments ADD COLUMN parent_id INTEGER');
     } catch (e) {
       console.warn('comments.parent_id migration skipped:', e.message);
     }
   }
 
-  const wcols = db.prepare('PRAGMA table_info(watch_history)').all();
+  const wcols = await db.prepare('PRAGMA table_info(watch_history)').all();
   const wnames = new Set(wcols.map((c) => c.name));
   if (!wnames.has('progress_percent')) {
     try {
-      db.exec('ALTER TABLE watch_history ADD COLUMN progress_percent REAL NOT NULL DEFAULT 0');
+      await db.exec('ALTER TABLE watch_history ADD COLUMN progress_percent REAL NOT NULL DEFAULT 0');
     } catch (e) {
       console.warn('watch_history.progress_percent migration skipped:', e.message);
     }
   }
   if (!wnames.has('completed')) {
     try {
-      db.exec('ALTER TABLE watch_history ADD COLUMN completed INTEGER NOT NULL DEFAULT 0');
+      await db.exec('ALTER TABLE watch_history ADD COLUMN completed INTEGER NOT NULL DEFAULT 0');
     } catch (e) {
       console.warn('watch_history.completed migration skipped:', e.message);
     }

@@ -1,29 +1,29 @@
 import { db } from '../config/database.js';
 
-export function findUserByEmail(email) {
-  return db.prepare('SELECT * FROM users WHERE email = ?').get(email.toLowerCase());
+export async function findUserByEmail(email) {
+  return await db.prepare('SELECT * FROM users WHERE email = ?').get(email.toLowerCase());
 }
 
-export function findUserByUsername(username) {
-  return db.prepare('SELECT * FROM users WHERE username = ?').get(username);
+export async function findUserByUsername(username) {
+  return await db.prepare('SELECT * FROM users WHERE username = ?').get(username);
 }
 
-export function findUserById(id) {
-  return db.prepare('SELECT * FROM users WHERE id = ?').get(id);
+export async function findUserById(id) {
+  return await db.prepare('SELECT * FROM users WHERE id = ?').get(id);
 }
 
-export function createUser({ username, email, passwordHash, avatar, role = 'user' }) {
-  const info = db
+export async function createUser({ username, email, passwordHash, avatar, role = 'user' }) {
+  const info = await db
     .prepare(
       `INSERT INTO users (username, email, password, avatar, role)
        VALUES (?, ?, ?, ?, ?)`
     )
     .run(username, email.toLowerCase(), passwordHash, avatar ?? '/uploads/default-avatar.svg', role);
-  return findUserById(Number(info.lastInsertRowid));
+  return await findUserById(Number(info.lastInsertRowid));
 }
 
-export function listUsersAdmin({ limit = 200, offset = 0 } = {}) {
-  return db
+export async function listUsersAdmin({ limit = 200, offset = 0 } = {}) {
+  return await db
     .prepare(
       `SELECT id, username, email, avatar, role, created_at FROM users
        ORDER BY id DESC LIMIT ? OFFSET ?`
@@ -31,7 +31,7 @@ export function listUsersAdmin({ limit = 200, offset = 0 } = {}) {
     .all(limit, offset);
 }
 
-export function updateUserAdmin(id, { username, email, role, avatar, passwordHash }) {
+export async function updateUserAdmin(id, { username, email, role, avatar, passwordHash }) {
   const fields = [];
   const vals = [];
   if (username !== undefined) {
@@ -54,17 +54,17 @@ export function updateUserAdmin(id, { username, email, role, avatar, passwordHas
     fields.push('password = ?');
     vals.push(passwordHash);
   }
-  if (!fields.length) return findUserById(id);
+  if (!fields.length) return await findUserById(id);
   vals.push(id);
-  db.prepare(`UPDATE users SET ${fields.join(', ')} WHERE id = ?`).run(...vals);
-  return findUserById(id);
+  await db.prepare(`UPDATE users SET ${fields.join(', ')} WHERE id = ?`).run(...vals);
+  return await findUserById(id);
 }
 
-export function deleteUser(id) {
-  db.prepare('DELETE FROM users WHERE id = ?').run(id);
+export async function deleteUser(id) {
+  await db.prepare('DELETE FROM users WHERE id = ?').run(id);
 }
 
-export function updateProfile(id, { avatar, username }) {
+export async function updateProfile(id, { avatar, username }) {
   const fields = [];
   const vals = [];
   if (username !== undefined) {
@@ -75,13 +75,14 @@ export function updateProfile(id, { avatar, username }) {
     fields.push('avatar = ?');
     vals.push(avatar);
   }
-  if (!fields.length) return findUserById(id);
+  if (!fields.length) return await findUserById(id);
   vals.push(id);
-  db.prepare(`UPDATE users SET ${fields.join(', ')} WHERE id = ?`).run(...vals);
-  return findUserById(id);
+  await db.prepare(`UPDATE users SET ${fields.join(', ')} WHERE id = ?`).run(...vals);
+  return await findUserById(id);
 }
 
-export function updateUserPassword(id, passwordHash) {
-  db.prepare('UPDATE users SET password = ? WHERE id = ?').run(passwordHash, id);
-  return findUserById(id);
+export async function updateUserPassword(id, passwordHash) {
+  await db.prepare('UPDATE users SET password = ? WHERE id = ?').run(passwordHash, id);
+  return await findUserById(id);
 }
+
