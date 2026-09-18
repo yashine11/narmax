@@ -16,7 +16,14 @@ const app = express();
 const PORT = Number(process.env.PORT) || 5000;
 const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
 
-// Trust the first proxy (Back4App / Render / Koyeb / etc.) so express-rate-limit works
+const allowedOrigins = [
+  clientUrl,
+  'http://localhost:5173',
+  'http://localhost:3000',
+  /\.vercel\.app$/,   // allow all vercel.app subdomains
+];
+
+// Trust the first proxy (Vercel / Render / etc.) so express-rate-limit works
 app.set('trust proxy', 1);
 
 app.use(
@@ -27,7 +34,15 @@ app.use(
 );
 app.use(
   cors({
-    origin: clientUrl,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, curl, same-origin)
+      if (!origin) return callback(null, true);
+      const allowed = allowedOrigins.some((o) =>
+        o instanceof RegExp ? o.test(origin) : o === origin
+      );
+      if (allowed) return callback(null, true);
+      callback(new Error(`CORS: origin ${origin} not allowed`));
+    },
     credentials: true,
   })
 );
