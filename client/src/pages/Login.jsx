@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import toast from 'react-hot-toast';
+import SSOButtons from '../components/SSOButtons.jsx';
 
 export default function Login() {
   const { login } = useAuth();
@@ -26,7 +27,7 @@ export default function Login() {
 
   return (
     <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-zinc-900/90 border border-zinc-800 rounded-xl p-8 shadow-card">
+      <div className="w-full max-w-md bg-zinc-900/90 border border-zinc-800 rounded-xl p-8 shadow-card backdrop-blur-md">
         <h1 className="text-3xl font-black mb-2">Sign In</h1>
         <p className="text-zinc-400 text-sm mb-6">
           New to NARMAX?{' '}
@@ -34,6 +35,9 @@ export default function Login() {
             Create an account
           </Link>
         </p>
+
+        <SSOButtons mode="Sign in" />
+
         <form onSubmit={submit} className="space-y-4">
           <div>
             <label className="text-xs text-zinc-400 block mb-1">Email</label>

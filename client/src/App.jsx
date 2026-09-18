@@ -9,6 +9,7 @@ import Person from './pages/Person.jsx';
 import Search from './pages/Search.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
+import AuthCallback from './pages/AuthCallback.jsx';
 import Profile from './pages/Profile.jsx';
 import MyList from './pages/MyList.jsx';
 import TVShowsPage from './pages/TVShowsPage.jsx';
@@ -37,6 +38,7 @@ export default function App() {
         <Route path="/search" element={<Search />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/my-list" element={<MyList />} />
         <Route path="/tv" element={<TVShowsPage />} />

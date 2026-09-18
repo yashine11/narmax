@@ -37,6 +37,13 @@ export function AuthProvider({ children }) {
     return data.user;
   };
 
+  const loginWithToken = async (token) => {
+    localStorage.setItem('narmax_token', token);
+    const { data } = await api.get('/api/user/me');
+    setUser(data);
+    return data;
+  };
+
   const logout = () => {
     localStorage.removeItem('narmax_token');
     setUser(null);
@@ -48,7 +55,7 @@ export function AuthProvider({ children }) {
   };
 
   const value = useMemo(
-    () => ({ user, loading, login, register, logout, refreshUser, setUser }),
+    () => ({ user, loading, login, register, loginWithToken, logout, refreshUser, setUser }),
     [user, loading]
   );
 

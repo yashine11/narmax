@@ -105,6 +105,8 @@ export async function initSchema() {
       password TEXT NOT NULL,
       avatar TEXT DEFAULT '/uploads/default-avatar.svg',
       role TEXT NOT NULL DEFAULT 'user',
+      oauth_provider TEXT,
+      oauth_id TEXT,
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
@@ -200,6 +202,26 @@ export async function initSchema() {
 
   await migrateMoviesColumns();
   await migrateCommentsAndWatch();
+  await migrateUsersOAuthColumns();
+}
+
+async function migrateUsersOAuthColumns() {
+  const cols = await db.prepare('PRAGMA table_info(users)').all();
+  const names = new Set(cols.map((c) => c.name));
+  if (!names.has('oauth_provider')) {
+    try {
+      await db.exec('ALTER TABLE users ADD COLUMN oauth_provider TEXT');
+    } catch (e) {
+      console.warn('users.oauth_provider migration skipped:', e.message);
+    }
+  }
+  if (!names.has('oauth_id')) {
+    try {
+      await db.exec('ALTER TABLE users ADD COLUMN oauth_id TEXT');
+    } catch (e) {
+      console.warn('users.oauth_id migration skipped:', e.message);
+    }
+  }
 }
 
 async function migrateMoviesColumns() {

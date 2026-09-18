@@ -54,6 +54,10 @@ router.use(apiLimiter);
 
 router.post('/auth/register', authLimiter, authController.register);
 router.post('/auth/login', authLimiter, authController.login);
+router.get('/auth/google', authController.googleRedirect);
+router.get('/auth/google/callback', authController.googleCallback);
+router.get('/auth/discord', authController.discordRedirect);
+router.get('/auth/discord/callback', authController.discordCallback);
 
 router.get('/tmdb/home', optionalAuth, tmdbController.homeFeed);
 router.get('/tmdb/hero', tmdbController.heroSlides);

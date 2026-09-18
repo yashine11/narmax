@@ -12,6 +12,10 @@ export async function findUserById(id) {
   return await db.prepare('SELECT * FROM users WHERE id = ?').get(id);
 }
 
+export async function findUserByOAuth(provider, oauthId) {
+  return await db.prepare('SELECT * FROM users WHERE oauth_provider = ? AND oauth_id = ?').get(provider, String(oauthId));
+}
+
 export async function createUser({ username, email, passwordHash, avatar, role = 'user' }) {
   const info = await db
     .prepare(
@@ -20,6 +24,26 @@ export async function createUser({ username, email, passwordHash, avatar, role =
     )
     .run(username, email.toLowerCase(), passwordHash, avatar ?? '/uploads/default-avatar.svg', role);
   return await findUserById(Number(info.lastInsertRowid));
+}
+
+export async function createOAuthUser({ username, email, avatar, role = 'user', oauthProvider, oauthId }) {
+  const dummyPass = `oauth_verified_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+  const info = await db
+    .prepare(
+      `INSERT INTO users (username, email, password, avatar, role, oauth_provider, oauth_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
+    )
+    .run(username, email.toLowerCase(), dummyPass, avatar ?? '/uploads/default-avatar.svg', role, oauthProvider, String(oauthId));
+  return await findUserById(Number(info.lastInsertRowid));
+}
+
+export async function linkOAuthToUser(id, { oauthProvider, oauthId, avatar }) {
+  if (avatar) {
+    await db.prepare('UPDATE users SET oauth_provider = ?, oauth_id = ?, avatar = COALESCE(avatar, ?) WHERE id = ?').run(oauthProvider, String(oauthId), avatar, id);
+  } else {
+    await db.prepare('UPDATE users SET oauth_provider = ?, oauth_id = ? WHERE id = ?').run(oauthProvider, String(oauthId), id);
+  }
+  return await findUserById(id);
 }
 
 export async function listUsersAdmin({ limit = 200, offset = 0 } = {}) {

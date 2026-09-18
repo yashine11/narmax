@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import toast from 'react-hot-toast';
+import SSOButtons from '../components/SSOButtons.jsx';
 
 export default function Register() {
   const { register } = useAuth();
@@ -13,13 +14,22 @@ export default function Register() {
 
   const submit = async (e) => {
     e.preventDefault();
+    const cleanEmail = email.trim().toLowerCase();
+    const localPart = cleanEmail.split('@')[0] || '';
+
+    // Quick client check for fake emails like 1234@...
+    if (/^\d+$/.test(localPart)) {
+      toast.error('Please enter a real email address (usernames cannot be all numbers)');
+      return;
+    }
+
     if (password.length < 8) {
       toast.error('Password must be at least 8 characters');
       return;
     }
     setBusy(true);
     try {
-      await register({ username, email, password });
+      await register({ username, email: cleanEmail, password });
       toast.success('Account created');
       navigate('/');
     } catch (err) {
@@ -31,7 +41,7 @@ export default function Register() {
 
   return (
     <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-zinc-900/90 border border-zinc-800 rounded-xl p-8 shadow-card">
+      <div className="w-full max-w-md bg-zinc-900/90 border border-zinc-800 rounded-xl p-8 shadow-card backdrop-blur-md">
         <h1 className="text-3xl font-black mb-2">Join NARMAX</h1>
         <p className="text-zinc-400 text-sm mb-6">
           Already have an account?{' '}
@@ -39,6 +49,9 @@ export default function Register() {
             Sign in
           </Link>
         </p>
+
+        <SSOButtons mode="Sign up" />
+
         <form onSubmit={submit} className="space-y-4">
           <div>
             <label className="text-xs text-zinc-400 block mb-1">Username</label>
