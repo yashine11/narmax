@@ -15,6 +15,11 @@ const ALLOWED_PLAYER_ORIGINS = new Set([
   'https://vidsrc.cc',
   'https://vaplayer.ru',
   'https://vidsrc-embed.ru',
+  'https://vidlink.pro',
+  'https://multiembed.mov',
+  'https://embed.smashystream.com',
+  'https://vidsrc.to',
+  'https://www.2embed.cc',
 ]);
 
 function clampPercent(value) {
@@ -556,14 +561,25 @@ export default function WatchPage() {
                         key={source.id}
                         type="button"
                         onClick={() => pickSource(index)}
-                        className={`group relative overflow-hidden rounded-xl border px-4 py-2 text-[11px] font-bold uppercase tracking-widest transition-all duration-300 ${
+                        className={`group relative overflow-hidden rounded-xl border px-3.5 py-2 text-[11px] font-bold uppercase tracking-wider transition-all duration-300 ${
                           index === activeIdx
-                            ? 'border-narmax-cyan bg-narmax-cyan/10 text-narmax-cyan'
+                            ? 'border-narmax-cyan bg-narmax-cyan/15 text-narmax-cyan shadow-[0_0_15px_rgba(86,207,225,0.2)]'
                             : 'border-white/10 bg-white/5 text-zinc-400 hover:border-white/30 hover:bg-white/10 hover:text-white'
                         }`}
                       >
                         {index === activeIdx && <span className="absolute inset-0 bg-narmax-cyan/5 animate-pulse" />}
-                        <span className="relative z-10">{source.label}</span>
+                        <span className="relative z-10 flex items-center gap-2">
+                          <span>{source.label}</span>
+                          {source.badge && (
+                            <span className={`rounded-md px-1.5 py-0.5 text-[9px] font-medium tracking-normal ${
+                              index === activeIdx
+                                ? 'bg-narmax-cyan/20 text-narmax-cyan'
+                                : 'bg-white/10 text-zinc-300'
+                            }`}>
+                              {source.badge}
+                            </span>
+                          )}
+                        </span>
                       </button>
                     ))}
                   </div>
