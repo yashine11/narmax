@@ -21,6 +21,7 @@ import NewsArticle from './pages/NewsArticle.jsx';
 import KidsGate from './pages/KidsGate.jsx';
 import KidsBrowse from './pages/KidsBrowse.jsx';
 import Admin from './pages/Admin.jsx';
+import Messages from './pages/Messages.jsx';
 import Watch from './pages/Watch.jsx';
 import NotFound from './pages/NotFound.jsx';
 import ScrollToTop from './components/ScrollToTop.jsx';
@@ -48,6 +49,7 @@ export default function App() {
         <Route path="/news" element={<NewsPage />} />
         <Route path="/news/:id" element={<NewsArticle />} />
         <Route path="/new" element={<Navigate to="/popular" replace />} />
+        <Route path="/messages" element={<Messages />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="*" element={<NotFound />} />
       </Route>

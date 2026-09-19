@@ -154,6 +154,14 @@ export async function broadcastMessage(req, res) {
     const adminAvatar = req.user?.avatar || null;
     for (const uid of targetIds) {
       await createNotification(uid, 'admin', title || 'admins', message, link || null, adminAvatar);
+      try {
+        await db.prepare(`
+          INSERT INTO direct_messages (sender_id, receiver_id, content, is_admin_message, is_read)
+          VALUES (?, ?, ?, 1, 0)
+        `).run(req.user.id, uid, message);
+      } catch (dmErr) {
+        console.warn('Direct message insert warning:', dmErr.message);
+      }
     }
     return res.json({ success: true, sent: targetIds.length });
   } catch (e) {

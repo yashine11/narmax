@@ -199,6 +199,21 @@ export async function initSchema() {
       UNIQUE(user_id, cast_id)
     );
     CREATE INDEX IF NOT EXISTS idx_liked_cast_user ON liked_cast(user_id);
+
+    CREATE TABLE IF NOT EXISTS direct_messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      sender_id INTEGER NOT NULL,
+      receiver_id INTEGER NOT NULL,
+      content TEXT NOT NULL,
+      is_admin_message INTEGER NOT NULL DEFAULT 0,
+      is_read INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_dm_pair ON direct_messages(sender_id, receiver_id);
+    CREATE INDEX IF NOT EXISTS idx_dm_receiver_read ON direct_messages(receiver_id, is_read);
+    CREATE INDEX IF NOT EXISTS idx_dm_admin ON direct_messages(is_admin_message);
   `);
 
   await migrateMoviesColumns();

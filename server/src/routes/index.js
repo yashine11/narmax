@@ -16,6 +16,7 @@ import * as kidsController from '../controllers/kidsController.js';
 import * as adminController from '../controllers/adminController.js';
 import * as notificationController from '../controllers/notificationController.js';
 import * as castController from '../controllers/castController.js';
+import * as messageController from '../controllers/messageController.js';
 import { authenticate, optionalAuth } from '../middleware/auth.js';
 import { requireAdmin } from '../middleware/admin.js';
 import { requireKidsSession } from '../middleware/kidsAuth.js';
@@ -108,6 +109,12 @@ router.get('/user/progress', authenticate, historyController.progressList);
 router.get('/notifications', authenticate, notificationController.list);
 router.patch('/notifications/:id', authenticate, notificationController.markAsRead);
 router.delete('/notifications/:id', authenticate, notificationController.deleteOne);
+
+router.get('/messages/conversations', authenticate, messageController.listConversations);
+router.get('/messages/unread-count', authenticate, messageController.getUnreadCount);
+router.get('/messages/search-users', authenticate, messageController.searchUsers);
+router.get('/messages/:partnerId', authenticate, messageController.getConversation);
+router.post('/messages', authenticate, messageController.sendMessage);
 
 router.get('/cast/liked', authenticate, castController.listLiked);
 router.post('/cast/toggle', authenticate, castController.toggleLike);

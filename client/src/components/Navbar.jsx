@@ -78,6 +78,7 @@ export default function Navbar() {
   const [notifications, setNotifications] = useState([]);
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifTab, setNotifTab] = useState('all');
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   const closeSearch = () => {
@@ -101,8 +102,9 @@ export default function Navbar() {
 
   useEffect(() => {
     if (!user) return;
-    api.get('/api/notifications').then((r) => setNotifications(r.data.notifications || []));
-  }, [user]);
+    api.get('/api/notifications').then((r) => setNotifications(r.data.notifications || [])).catch(() => {});
+    api.get('/api/messages/unread-count').then((r) => setUnreadMessagesCount(r.data.unreadCount || 0)).catch(() => {});
+  }, [user, location.pathname]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -314,6 +316,27 @@ export default function Navbar() {
                 </button>
               )}
 
+              {/* Messages (Desktop, logged-in) */}
+              {user && (
+                <NavLink
+                  to="/messages"
+                  className={({ isActive }) =>
+                    `relative flex h-8 w-8 items-center justify-center rounded-full transition ${
+                      isActive ? 'text-white bg-white/10' : 'text-zinc-400 hover:text-white'
+                    }`
+                  }
+                  title="Messages"
+                  aria-label="Messages"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                  </svg>
+                  {unreadMessagesCount > 0 && (
+                    <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-emerald-500" />
+                  )}
+                </NavLink>
+              )}
+
               {/* Clean Expanding Search */}
               <div
                 ref={searchRef}
@@ -456,6 +479,26 @@ export default function Navbar() {
               </button>
             )}
 
+            {/* Messages — Mobile */}
+            {user && (
+              <NavLink
+                to="/messages"
+                className={({ isActive }) =>
+                  `relative flex h-9 w-9 items-center justify-center rounded-full border border-white/10 transition ${
+                    isActive ? 'bg-white/15 text-white' : 'bg-white/5 text-zinc-300 hover:bg-white/10'
+                  }`
+                }
+                title="Messages"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+                {unreadMessagesCount > 0 && (
+                  <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-black" />
+                )}
+              </NavLink>
+            )}
+
             {/* Profile / Settings — Mobile */}
             {user ? (
               <Link
@@ -576,6 +619,16 @@ export default function Navbar() {
                   {item.label}
                 </NavLink>
               ))}
+              {user && (
+                <NavLink to="/messages" className={mobileLinkClass} onClick={() => setMobileMenuOpen(false)}>
+                  Messages
+                  {unreadMessagesCount > 0 && (
+                    <span className="ml-auto rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-bold text-black">
+                      {unreadMessagesCount}
+                    </span>
+                  )}
+                </NavLink>
+              )}
               {user?.role === 'admin' && (
                 <NavLink to="/admin" className={mobileLinkClass} onClick={() => setMobileMenuOpen(false)}>
                   Admin
