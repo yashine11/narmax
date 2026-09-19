@@ -1,8 +1,9 @@
 // ─── Stream Service ───────────────────────────────────────────────────────────
-// 3 streaming sources:
-//   1. Main Server  → moviesapi.to  (primary, correct embed format)
-//   2. Server 2     → vaplayer.ru   (original main server)
+// 4 streaming sources:
+//   1. Main Server  → moviesapi.to    (primary, correct embed format)
+//   2. Server 2     → vaplayer.ru     (original main server)
 //   3. Server 3     → vidsrc-embed.ru (original backup 3)
+//   4. Server 4     → cinextream.cc   (Vidstack / ArtPlayer Fast HD)
 // ──────────────────────────────────────────────────────────────────────────────
 
 function normalizeTmdbId(id) {
@@ -77,6 +78,13 @@ function labeledMovie(tmdbId, options = {}) {
         resumeAt
       ),
     },
+    // 4. Server 4 — Cinextream (Vidstack / ArtPlayer, Fast HD)
+    {
+      id: 'cinextream',
+      label: 'Server 4',
+      badge: 'Fast HD',
+      url: `https://cinextream.cc/api/embed/movie/${tmdb}?color=e50914`,
+    },
   ];
 }
 
@@ -125,6 +133,13 @@ function labeledTv(tmdbId, season, episode, options = {}) {
         `https://vidsrc-embed.ru/embed/tv?${vidsrcParams.toString()}`,
         resumeAt
       ),
+    },
+    // 4. Server 4 — Cinextream (Vidstack / ArtPlayer, Fast HD)
+    {
+      id: 'cinextream',
+      label: 'Server 4',
+      badge: 'Fast HD',
+      url: `https://cinextream.cc/api/embed/tv/${tmdb}/${s}/${e}?color=e50914`,
     },
   ];
 }

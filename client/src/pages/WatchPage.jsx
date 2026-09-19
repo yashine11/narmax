@@ -14,6 +14,8 @@ const ALLOWED_PLAYER_ORIGINS = new Set([
   'https://moviesapi.to',
   'https://vaplayer.ru',
   'https://vidsrc-embed.ru',
+  'https://cinextream.cc',
+  'https://cinextream.net',
 ]);
 
 function clampPercent(value) {
@@ -54,31 +56,45 @@ function normalizePlayerEvent(payload) {
       return null;
     }
   }
-  if (!raw || raw.type !== 'PLAYER_EVENT' || typeof raw.data !== 'object') {
+  if (!raw || typeof raw !== 'object') {
     return null;
   }
 
-  const data = raw.data || {};
-  const info = data.player_info || {};
-  const sourceStatus = String(data.player_status || data.event || '').toLowerCase();
+  // Handle { type: 'PLAYER_EVENT', data: { ... } } or direct { event: '...', ... } (Cinextream / Vidstack)
+  let data = raw;
+  let info = {};
+  if (raw.type === 'PLAYER_EVENT' && typeof raw.data === 'object' && raw.data !== null) {
+    data = raw.data;
+    info = data.player_info || {};
+  } else if (!raw.event && !raw.type) {
+    return null;
+  }
+
+  const sourceStatus = String(data.player_status || data.event || raw.event || '').toLowerCase();
 
   let status = 'idle';
   if (sourceStatus === 'playing' || sourceStatus === 'play' || sourceStatus === 'time' || sourceStatus === 'timeupdate') {
     status = 'playing';
   } else if (sourceStatus === 'paused' || sourceStatus === 'pause') {
     status = 'paused';
-  } else if (sourceStatus === 'completed' || sourceStatus === 'complete' || sourceStatus === 'ended' || sourceStatus === 'end') {
+  } else if (
+    sourceStatus === 'completed' ||
+    sourceStatus === 'complete' ||
+    sourceStatus === 'ended' ||
+    sourceStatus === 'end' ||
+    sourceStatus === 'video_ended'
+  ) {
     status = 'completed';
   } else if (sourceStatus === 'seeked' || sourceStatus === 'seek') {
     status = 'seeked';
-  } else if (sourceStatus === 'error' || sourceStatus === 'failed') {
+  } else if (sourceStatus === 'error' || sourceStatus === 'failed' || sourceStatus === 'player_error') {
     status = 'error';
   }
 
   return {
     status,
-    currentTime: Number(data.player_progress ?? data.currentTime ?? data.progress ?? 0),
-    duration: Number(data.player_duration ?? data.duration ?? 0),
+    currentTime: Number(data.player_progress ?? data.currentTime ?? data.progress ?? data.time ?? raw.time ?? 0),
+    duration: Number(data.player_duration ?? data.duration ?? raw.duration ?? 0),
     qualityLabel:
       typeof data.quality === 'string'
         ? data.quality
@@ -86,8 +102,8 @@ function normalizePlayerEvent(payload) {
           ? String(data.quality.label)
           : null,
     mediaType: String(info.mediaType || data.mediaType || '').toLowerCase() || null,
-    season: Number(info.season ?? data.season ?? 0) || null,
-    episode: Number(info.episode ?? data.episode ?? 0) || null,
+    season: Number(info.season ?? data.season ?? raw.season ?? 0) || null,
+    episode: Number(info.episode ?? data.episode ?? raw.episode ?? 0) || null,
   };
 }
 
