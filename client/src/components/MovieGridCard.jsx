@@ -314,8 +314,10 @@ export default function MovieGridCard({
 
       {/* Expanded Hover Card */}
       <div
-        className={`pointer-events-none absolute top-1/2 z-[999] w-[140%] -translate-y-1/2 overflow-visible rounded-2xl bg-[#0a0a0a] shadow-[0_30px_100px_rgba(0,0,0,0.9)] ring-1 ring-white/20 transition-all duration-400 ease-out sm:w-[180%] ${
-          hovered ? 'pointer-events-auto scale-100 opacity-100' : 'scale-75 opacity-0'
+        className={`pointer-events-none absolute top-1/2 z-[999] -translate-y-1/2 overflow-visible rounded-2xl bg-[#0a0a0a] shadow-[0_30px_100px_rgba(0,0,0,0.9)] ring-1 ring-white/20 transition-all duration-300 ease-out ${
+          isLandscape ? 'w-[106%] sm:w-[114%]' : 'w-[140%] sm:w-[175%]'
+        } ${
+          hovered ? 'pointer-events-auto scale-100 opacity-100' : 'scale-90 opacity-0'
         } ${
           edgeAlign === 'left'
             ? 'left-0'

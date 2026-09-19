@@ -56,8 +56,14 @@ function ContinueWatchingRow({ items }) {
 
       <div
         ref={railRef}
-        className="row-scroll mx-auto flex max-w-[1920px] gap-3 overflow-x-auto px-4 pb-3 sm:gap-4 sm:px-8"
-        style={{ paddingTop: '5rem', paddingBottom: '5rem', marginTop: '-5rem', marginBottom: '-5rem', overflowY: 'visible' }}
+        className="row-scroll mx-auto flex max-w-[1920px] gap-3 overflow-x-auto px-4 sm:gap-4 sm:px-8"
+        style={{
+          paddingTop: isLandscape ? '6.5rem' : '5rem',
+          paddingBottom: isLandscape ? '7rem' : '5rem',
+          marginTop: isLandscape ? '-6.5rem' : '-5rem',
+          marginBottom: isLandscape ? '-7rem' : '-5rem',
+          overflowY: 'visible',
+        }}
       >
         {items.map((item) => {
           const mediaType = item.media_type === 'tv' ? 'tv' : 'movie';
