@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import toast from 'react-hot-toast';
 
 export default function MyList() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -17,6 +17,14 @@ export default function MyList() {
       .catch(() => toast.error('Could not load list'))
       .finally(() => setLoading(false));
   }, [user]);
+
+  if (authLoading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-narmax-red border-t-transparent" />
+      </div>
+    );
+  }
 
   if (!user) return <Navigate to="/login" replace />;
 

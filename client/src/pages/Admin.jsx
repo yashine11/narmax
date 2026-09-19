@@ -13,7 +13,7 @@ const tabs = [
 ];
 
 export default function Admin() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [tab, setTab] = useState('dash');
   const [dash, setDash] = useState(null);
   const [movies, setMovies] = useState([]);
@@ -49,6 +49,14 @@ export default function Admin() {
     if (tab === 'users') refreshUsers();
     if (tab === 'comments') refreshComments();
   }, [tab, user]);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-narmax-red border-t-transparent" />
+      </div>
+    );
+  }
 
   if (!user) return <Navigate to="/login" replace />;
   if (user.role !== 'admin') return <Navigate to="/" replace />;

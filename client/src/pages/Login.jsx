@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import toast from 'react-hot-toast';
 import SSOButtons from '../components/SSOButtons.jsx';
 
 export default function Login() {
-  const { login } = useAuth();
+  const { user, loading, login } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const isPortal =
@@ -15,6 +15,12 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (!loading && user && !isPortal) {
+      navigate('/profile', { replace: true });
+    }
+  }, [loading, user, isPortal, navigate]);
 
   const submitAdmin = async (e) => {
     e.preventDefault();

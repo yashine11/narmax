@@ -6,7 +6,7 @@ import { usePreferences } from '../context/PreferencesContext.jsx';
 import toast from 'react-hot-toast';
 
 export default function Profile() {
-  const { user, refreshUser, logout } = useAuth();
+  const { user, loading, refreshUser, logout } = useAuth();
   const { uiSize, setUiSize, cardStyle, setCardStyle } = usePreferences();
 
   // Profile fields
@@ -32,6 +32,14 @@ export default function Profile() {
     api.get('/api/cast/liked').then((r) => setLikedCast(r.data.cast || [])).catch(() => {});
     api.get('/api/user/favorites').then((r) => setFavorites(r.data.favorites || [])).catch(() => {});
   }, [user]);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-narmax-red border-t-transparent" />
+      </div>
+    );
+  }
 
   if (!user) return <Navigate to="/login" replace />;
 

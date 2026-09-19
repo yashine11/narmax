@@ -1,7 +1,17 @@
-import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext.jsx';
 import SSOButtons from '../components/SSOButtons.jsx';
 
 export default function Register() {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && user) {
+      navigate('/profile', { replace: true });
+    }
+  }, [loading, user, navigate]);
   return (
     <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md bg-zinc-900/90 border border-zinc-800 rounded-2xl p-8 shadow-2xl backdrop-blur-md">
