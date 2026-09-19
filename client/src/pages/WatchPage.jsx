@@ -16,6 +16,7 @@ const ALLOWED_PLAYER_ORIGINS = new Set([
   'https://vidsrc-embed.ru',
   'https://cinextream.cc',
   'https://cinextream.net',
+  'https://vidsrc.sbs',
 ]);
 
 function clampPercent(value) {

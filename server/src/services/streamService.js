@@ -1,9 +1,10 @@
 // ─── Stream Service ───────────────────────────────────────────────────────────
-// 4 streaming sources:
+// 5 streaming sources:
 //   1. Main Server  → moviesapi.to    (primary, correct embed format)
 //   2. Server 2     → vaplayer.ru     (original main server)
 //   3. Server 3     → vidsrc-embed.ru (original backup 3)
 //   4. Server 4     → cinextream.cc   (Vidstack / ArtPlayer Fast HD)
+//   5. Server 5     → vidsrc.sbs      (VidSrc SBS, No Ads, red accent)
 // ──────────────────────────────────────────────────────────────────────────────
 
 function normalizeTmdbId(id) {
@@ -34,6 +35,13 @@ function withResumeParam(url, resumeAt) {
   if (!at) return url;
   const separator = url.includes('?') ? '&' : '?';
   return `${url}${separator}resumeAt=${at}`;
+}
+
+function withVidsrcSbsParams(url, resumeAt) {
+  const at = ensureResumeAt(resumeAt);
+  let result = `${url}?color=e50914`;
+  if (at) result += `&t=${at}`;
+  return result;
 }
 
 // ─── MOVIE SOURCES ─────────────────────────────────────────────────────────────
@@ -84,6 +92,13 @@ function labeledMovie(tmdbId, options = {}) {
       label: 'Server 4',
       badge: 'Fast HD',
       url: `https://cinextream.cc/api/embed/movie/${tmdb}?color=e50914`,
+    },
+    // 5. Server 5 — VidSrc SBS (No Ads, custom accent color, timestamp resume)
+    {
+      id: 'vidsrc_sbs',
+      label: 'Server 5',
+      badge: 'No Ads',
+      url: withVidsrcSbsParams(`https://vidsrc.sbs/embed/movie/${tmdb}`, resumeAt),
     },
   ];
 }
@@ -140,6 +155,13 @@ function labeledTv(tmdbId, season, episode, options = {}) {
       label: 'Server 4',
       badge: 'Fast HD',
       url: `https://cinextream.cc/api/embed/tv/${tmdb}/${s}/${e}?color=e50914`,
+    },
+    // 5. Server 5 — VidSrc SBS (No Ads, custom accent color, timestamp resume)
+    {
+      id: 'vidsrc_sbs',
+      label: 'Server 5',
+      badge: 'No Ads',
+      url: withVidsrcSbsParams(`https://vidsrc.sbs/embed/tv/${tmdb}/${s}/${e}`, resumeAt),
     },
   ];
 }
