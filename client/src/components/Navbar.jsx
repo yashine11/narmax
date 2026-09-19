@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import api from '../api/client.js';
+import AdminAvatar from './AdminAvatar.jsx';
 
 const NAV_LINKS = [
   { to: '/', label: 'Home', end: true },
@@ -429,12 +430,16 @@ export default function Navbar() {
                 className="group inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.05] p-1 pr-3 transition hover:border-narmax-cyan hover:bg-white/[0.12]"
                 title="Profile & Settings"
               >
-                <img
-                  src={user.avatar}
-                  alt={user.username}
-                  className="h-7 w-7 rounded-full border border-white/15 object-cover"
-                  loading="lazy"
-                />
+                {user.role === 'admin' ? (
+                  <AdminAvatar className="h-7 w-7" />
+                ) : (
+                  <img
+                    src={user.avatar}
+                    alt={user.username}
+                    className="h-7 w-7 rounded-full border border-white/15 object-cover"
+                    loading="lazy"
+                  />
+                )}
                 <span className="text-xs font-semibold text-zinc-300 group-hover:text-white">
                   {user.username}
                 </span>
@@ -526,7 +531,11 @@ export default function Navbar() {
                 className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-white/15 bg-white/5 transition hover:border-narmax-cyan hover:bg-white/10"
                 title="Profile & Settings"
               >
-                <img src={user.avatar} alt="" className="h-full w-full object-cover" loading="lazy" />
+                {user.role === 'admin' ? (
+                  <AdminAvatar className="h-7 w-7" />
+                ) : (
+                  <img src={user.avatar} alt="" className="h-full w-full object-cover" loading="lazy" />
+                )}
               </Link>
             ) : (
               <Link

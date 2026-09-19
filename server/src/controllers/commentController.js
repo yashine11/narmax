@@ -1,5 +1,7 @@
 import { ensureMovieFromTmdb, getMovieByTmdbId } from '../models/movieModel.js';
 import * as comments from '../models/commentModel.js';
+import { createNotification } from '../controllers/notificationController.js';
+import { db } from '../config/database.js';
 
 export async function list(req, res) {
   const movieId = Number(req.params.movieId);
@@ -44,6 +46,23 @@ export async function create(req, res) {
 
     const parentId = parent_id != null ? Number(parent_id) : null;
     const full = await comments.addComment(req.user.id, movie.id, String(content).trim(), parentId || null);
+
+    // Notify the original commenter about the reply
+    if (parentId) {
+      const parent = await comments.getCommentById(parentId);
+      if (parent && parent.user_id !== req.user.id) {
+        const replierName = req.user.username || 'Someone';
+        const movieTitle = full.title || movie.title || 'a title';
+        await createNotification(
+          parent.user_id,
+          'reply',
+          `${replierName} replied to your comment`,
+          `"${String(content).trim().slice(0, 80)}"`,
+          `/${movie.media_type === 'tv' ? 'tv' : 'movie'}/${movie.tmdb_id || movie.id}`
+        );
+      }
+    }
+
     return res.status(201).json({ comment: full });
   } catch (e) {
     if (e.message === 'Invalid reply target') {

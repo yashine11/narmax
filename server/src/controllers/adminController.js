@@ -4,6 +4,7 @@ import * as movieModel from '../models/movieModel.js';
 import * as userModel from '../models/userModel.js';
 import * as commentModel from '../models/commentModel.js';
 import { delCachePattern } from '../services/cacheService.js';
+import { createNotification } from '../controllers/notificationController.js';
 
 export async function dashboard(req, res) {
   const users = (await db.prepare('SELECT COUNT(*) as n FROM users').get())?.n ?? 0;
@@ -130,3 +131,32 @@ export async function removeComment(req, res) {
   return res.json({ ok: true });
 }
 
+
+export async function broadcastMessage(req, res) {
+  try {
+    const { target, message, title, link } = req.body;
+    if (!message || !title) {
+      return res.status(400).json({ message: 'title and message required' });
+    }
+    const users = await db.prepare('SELECT id FROM users').all();
+    let targetIds = [];
+    if (target === 'all') {
+      targetIds = users.map(u => u.id);
+    } else if (target === 'user') {
+      const { username } = req.body;
+      if (!username) return res.status(400).json({ message: 'username required' });
+      const u = await db.prepare('SELECT id FROM users WHERE username = ?').get(username);
+      if (!u) return res.status(404).json({ message: 'User not found' });
+      targetIds = [u.id];
+    } else {
+      return res.status(400).json({ message: 'Invalid target' });
+    }
+    for (const uid of targetIds) {
+      await createNotification(uid, 'admin', title, message, link || null);
+    }
+    return res.json({ success: true, sent: targetIds.length });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ message: 'Failed to broadcast' });
+  }
+}

@@ -127,4 +127,6 @@ router.delete('/admin/users/:id', authenticate, requireAdmin, adminController.re
 router.get('/admin/comments', authenticate, requireAdmin, adminController.listComments);
 router.delete('/admin/comments/:id', authenticate, requireAdmin, adminController.removeComment);
 
+router.post('/admin/broadcast', authenticate, requireAdmin, adminController.broadcastMessage);
+
 export default router;

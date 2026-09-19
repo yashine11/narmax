@@ -16,7 +16,7 @@ export async function addComment(userId, movieId, content, parentId = null) {
 export async function getCommentById(id) {
   return await db
     .prepare(
-      `SELECT c.*, u.username, u.avatar FROM comments c
+      `SELECT c.*, u.username, u.avatar, u.role FROM comments c
        JOIN users u ON u.id = c.user_id
        WHERE c.id = ?`
     )
@@ -26,7 +26,7 @@ export async function getCommentById(id) {
 export async function listCommentsFlat(movieId, viewerId = null) {
   const rows = await db
     .prepare(
-      `SELECT c.*, u.username, u.avatar,
+      `SELECT c.*, u.username, u.avatar, u.role,
         (SELECT COUNT(*) FROM comment_reactions r WHERE r.comment_id = c.id AND r.vote = 1) AS likes_up,
         (SELECT COUNT(*) FROM comment_reactions r WHERE r.comment_id = c.id AND r.vote = -1) AS likes_down
        FROM comments c

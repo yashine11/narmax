@@ -4,6 +4,7 @@ import api from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { usePreferences } from '../context/PreferencesContext.jsx';
 import toast from 'react-hot-toast';
+import AdminAvatar from '../components/AdminAvatar.jsx';
 
 export default function Profile() {
   const { user, loading, refreshUser, logout } = useAuth();
@@ -258,11 +259,15 @@ export default function Profile() {
               <form onSubmit={saveProfile} className="space-y-5">
                 {/* Photo & Identity Display */}
                 <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                  <img
-                    src={user.avatar || '/uploads/default-avatar.svg'}
-                    alt={user.username}
-                    className="h-16 w-16 rounded-2xl border-2 border-white/15 object-cover shadow-xl"
-                  />
+                  {user.role === 'admin' ? (
+                    <AdminAvatar className="h-16 w-16" />
+                  ) : (
+                    <img
+                      src={user.avatar || '/uploads/default-avatar.svg'}
+                      alt={user.username}
+                      className="h-16 w-16 rounded-2xl border-2 border-white/15 object-cover shadow-xl"
+                    />
+                  )}
                   <div>
                     <p className="text-base font-black text-white">{user.username}</p>
                     <p className="text-xs text-zinc-400">{user.email || 'Connected Account'}</p>

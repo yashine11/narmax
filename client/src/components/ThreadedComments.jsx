@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import api from '../api/client.js';
 import toast from 'react-hot-toast';
+import AdminAvatar from './AdminAvatar.jsx';
 
 function avatarUrl(a) {
   if (!a) return '';
@@ -99,10 +100,17 @@ function CommentNode({ node, user, tmdbId, mediaType, movieMeta, onRefresh, dept
     <li className={`${depth > 0 ? 'ml-4 sm:ml-8 pl-4 border-l border-zinc-800' : ''}`}>
       <div className="bg-zinc-900/90 border border-zinc-800 rounded-xl p-4 mb-3">
         <div className="flex items-start gap-3">
-          <img src={avatarUrl(node.avatar)} alt="" className="w-9 h-9 rounded-full border border-zinc-700 shrink-0" />
+          {node.role === 'admin' ? (
+            <AdminAvatar className="w-9 h-9" />
+          ) : (
+            <img src={avatarUrl(node.avatar)} alt="" className="w-9 h-9 rounded-full border border-zinc-700 shrink-0" />
+          )}
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2 text-sm">
               <span className="font-bold text-white">{node.username}</span>
+              {node.role === 'admin' && (
+                <span className="rounded-full bg-[#00b3ff]/15 px-2 py-0.5 text-[10px] font-bold text-[#00b3ff] border border-[#00b3ff]/30">Admin</span>
+              )}
               <span className="text-zinc-500 text-xs">{formatTime(node.created_at)}</span>
             </div>
             <p className="text-zinc-200 text-sm mt-2 whitespace-pre-wrap break-words">{node.content}</p>

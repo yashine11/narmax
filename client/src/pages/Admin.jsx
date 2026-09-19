@@ -9,6 +9,7 @@ const tabs = [
   { id: 'movies', label: 'Movies' },
   { id: 'users', label: 'Users' },
   { id: 'comments', label: 'Comments' },
+  { id: 'messages', label: '📣 Messages' },
   { id: 'kids', label: 'Kids code' },
 ];
 
@@ -30,6 +31,11 @@ export default function Admin() {
   });
   const [editingId, setEditingId] = useState(null);
   const [kidsCode, setKidsCode] = useState('');
+  const [msgTarget, setMsgTarget] = useState('all');
+  const [msgUsername, setMsgUsername] = useState('');
+  const [msgTitle, setMsgTitle] = useState('');
+  const [msgBody, setMsgBody] = useState('');
+  const [msgBusy, setMsgBusy] = useState(false);
   const refreshDash = () =>
     api.get('/api/admin/dashboard').then((r) => setDash(r.data)).catch(() => {});
 
@@ -164,6 +170,35 @@ export default function Admin() {
       toast.success('Kids code updated');
     } catch {
       toast.error('Failed to set code');
+    }
+  };
+
+  const sendBroadcast = async (e) => {
+    e.preventDefault();
+    if (!msgTitle.trim() || !msgBody.trim()) {
+      toast.error('Title and message are required');
+      return;
+    }
+    setMsgBusy(true);
+    try {
+      const payload = {
+        target: msgTarget,
+        title: msgTitle.trim(),
+        message: msgBody.trim(),
+      };
+      if (msgTarget === 'user') {
+        if (!msgUsername.trim()) { toast.error('Username required'); setMsgBusy(false); return; }
+        payload.username = msgUsername.trim();
+      }
+      const r = await api.post('/api/admin/broadcast', payload);
+      toast.success(`Sent to ${r.data.sent} user(s)`);
+      setMsgTitle('');
+      setMsgBody('');
+      setMsgUsername('');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Send failed');
+    } finally {
+      setMsgBusy(false);
     }
   };
 
@@ -393,6 +428,87 @@ export default function Admin() {
             Save code
           </button>
         </form>
+      )}
+
+      {tab === 'messages' && (
+        <div className="max-w-lg space-y-6">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 space-y-4">
+            <h2 className="font-bold text-lg">📣 Broadcast Message</h2>
+            <p className="text-zinc-400 text-sm">
+              Send a notification to <code className="text-narmax-cyan">@all</code> users or a specific user.
+            </p>
+            <form onSubmit={sendBroadcast} className="space-y-4">
+              {/* Target selector */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">Send to</label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setMsgTarget('all')}
+                    className={`flex-1 rounded-lg py-2 text-sm font-bold transition ${
+                      msgTarget === 'all' ? 'bg-narmax-red text-white' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                    }`}
+                  >
+                    @all
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMsgTarget('user')}
+                    className={`flex-1 rounded-lg py-2 text-sm font-bold transition ${
+                      msgTarget === 'user' ? 'bg-[#00b3ff] text-black' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                    }`}
+                  >
+                    @specific user
+                  </button>
+                </div>
+              </div>
+
+              {/* Username field (only for specific user) */}
+              {msgTarget === 'user' && (
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-widest text-zinc-500 mb-1">Username</label>
+                  <input
+                    value={msgUsername}
+                    onChange={(e) => setMsgUsername(e.target.value)}
+                    placeholder="e.g. user1"
+                    className="w-full bg-black border border-zinc-700 rounded px-3 py-2 text-sm"
+                  />
+                </div>
+              )}
+
+              {/* Notification title */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-widest text-zinc-500 mb-1">Title</label>
+                <input
+                  value={msgTitle}
+                  onChange={(e) => setMsgTitle(e.target.value)}
+                  placeholder="Short notification title"
+                  className="w-full bg-black border border-zinc-700 rounded px-3 py-2 text-sm"
+                />
+              </div>
+
+              {/* Message body */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-widest text-zinc-500 mb-1">Message</label>
+                <textarea
+                  rows={4}
+                  value={msgBody}
+                  onChange={(e) => setMsgBody(e.target.value)}
+                  placeholder="Write your message here…"
+                  className="w-full bg-black border border-zinc-700 rounded px-3 py-2 text-sm resize-none"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={msgBusy}
+                className="w-full bg-narmax-red py-2.5 rounded-lg font-bold text-sm disabled:opacity-50"
+              >
+                {msgBusy ? 'Sending…' : '🚀 Send Notification'}
+              </button>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );
