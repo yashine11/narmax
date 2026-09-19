@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import api from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -18,6 +18,19 @@ export default function TvDetail() {
   const [seasonNum, setSeasonNum] = useState(1);
   const [episodes, setEpisodes] = useState([]);
   const [epLoading, setEpLoading] = useState(false);
+  const episodesRailRef = useRef(null);
+
+  const scrollEpisodes = (direction) => {
+    if (!episodesRailRef.current) return;
+    const scrollAmount = 640;
+    episodesRailRef.current.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    if (episodesRailRef.current) {
+      episodesRailRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+    }
+  }, [seasonNum]);
 
   const loadComments = useCallback(() => {
     api
@@ -299,95 +312,157 @@ export default function TvDetail() {
             <p className="text-xs text-zinc-400 mt-0.5">Select a season and tap an episode to start streaming</p>
           </div>
 
-          {/* Season Pills */}
-          {seasons.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {seasons.map((s) => (
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Season Pills */}
+            {seasons.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {seasons.map((s) => (
+                  <button
+                    key={s.season_number}
+                    type="button"
+                    onClick={() => setSeasonNum(s.season_number)}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition ${
+                      seasonNum === s.season_number
+                        ? 'bg-narmax-red border-narmax-red text-white shadow-md shadow-red-900/40'
+                        : 'bg-zinc-900 border-white/10 text-zinc-300 hover:border-white/20 hover:text-white'
+                    }`}
+                  >
+                    {s.name || `Season ${s.season_number}`}
+                    {s.episode_count != null ? ` (${s.episode_count})` : ''}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Slide Left & Right Header Buttons */}
+            {episodes.length > 0 && (
+              <div className="hidden sm:flex items-center gap-1.5 ml-auto sm:ml-2">
                 <button
-                  key={s.season_number}
                   type="button"
-                  onClick={() => setSeasonNum(s.season_number)}
-                  className={`px-4 py-1.5 rounded-full text-xs font-semibold border transition ${
-                    seasonNum === s.season_number
-                      ? 'bg-narmax-red border-narmax-red text-white shadow-md shadow-red-900/40'
-                      : 'bg-zinc-900 border-white/10 text-zinc-300 hover:border-white/20 hover:text-white'
-                  }`}
+                  aria-label="Slide Left"
+                  onClick={() => scrollEpisodes(-1)}
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-white/15 bg-zinc-900/90 text-zinc-300 transition hover:bg-white/15 hover:text-white hover:border-white/30 active:scale-95"
                 >
-                  {s.name || `Season ${s.season_number}`}
-                  {s.episode_count != null ? ` (${s.episode_count})` : ''}
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                  </svg>
                 </button>
-              ))}
-            </div>
-          )}
+                <button
+                  type="button"
+                  aria-label="Slide Right"
+                  onClick={() => scrollEpisodes(1)}
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-white/15 bg-zinc-900/90 text-zinc-300 transition hover:bg-white/15 hover:text-white hover:border-white/30 active:scale-95"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {seasons.length === 0 ? (
           <p className="text-zinc-500 text-sm">Season information is not available for this title.</p>
         ) : epLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="aspect-video skeleton rounded-xl" />
+          <div className="flex gap-3.5 overflow-hidden">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="w-[210px] sm:w-[240px] md:w-[260px] shrink-0 aspect-[16/11] skeleton rounded-xl" />
             ))}
           </div>
         ) : (
-          /* 16:9 Landscape Episode Cards matching Cinejoy */
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {episodes.map((ep) => (
-              <Link
-                key={ep.id}
-                to={`/watch/${id}?type=tv&season=${seasonNum}&episode=${ep.episode_number}`}
-                className="group relative flex flex-col rounded-xl overflow-hidden bg-zinc-900/70 border border-white/10 hover:border-white/30 transition shadow hover:shadow-lg"
-              >
-                {/* 16:9 Thumbnail */}
-                <div className="relative aspect-video w-full overflow-hidden bg-zinc-800">
-                  {ep.still_path ? (
-                    <img
-                      src={ep.still_path}
-                      alt={ep.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-zinc-600 text-sm font-bold">
-                      Episode {ep.episode_number}
-                    </div>
-                  )}
+          /* Sleek Horizontal Sliding Episode Carousel */
+          <div className="relative group/slider">
+            {/* Left fade/arrow hover overlay (desktop) */}
+            <button
+              type="button"
+              onClick={() => scrollEpisodes(-1)}
+              className="absolute left-0 top-0 bottom-3 z-20 hidden md:flex items-center justify-center w-12 bg-gradient-to-r from-black/90 via-black/50 to-transparent opacity-0 group-hover/slider:opacity-100 transition-opacity duration-300 text-white rounded-l-xl"
+              aria-label="Slide Left"
+            >
+              <div className="flex h-9 w-9 items-center justify-center rounded-full border border-white/25 bg-black/80 backdrop-blur-md shadow-xl transition-transform hover:scale-110">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                </svg>
+              </div>
+            </button>
 
-                  {/* Top-left Episode Badge */}
-                  <div className="absolute top-2.5 left-2.5 bg-black/75 backdrop-blur-sm text-white font-black text-[11px] px-2 py-0.5 rounded">
-                    {String(ep.episode_number).padStart(2, '0')}
+            {/* Horizontal Scroll Rail */}
+            <div
+              ref={episodesRailRef}
+              className="flex gap-3 sm:gap-4 overflow-x-auto row-scroll scroll-smooth pb-3 pt-1 snap-x snap-mandatory"
+            >
+              {episodes.map((ep) => (
+                <Link
+                  key={ep.id}
+                  to={`/watch/${id}?type=tv&season=${seasonNum}&episode=${ep.episode_number}`}
+                  className="group shrink-0 snap-start w-[210px] sm:w-[240px] md:w-[260px] flex flex-col rounded-xl overflow-hidden bg-zinc-900/80 border border-white/10 hover:border-narmax-red/60 transition-all duration-300 shadow hover:shadow-xl hover:shadow-black/60 hover:-translate-y-1"
+                >
+                  {/* 16:9 Thumbnail */}
+                  <div className="relative aspect-video w-full overflow-hidden bg-zinc-800">
+                    {ep.still_path ? (
+                      <img
+                        src={ep.still_path}
+                        alt={ep.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-zinc-600 text-xs font-bold">
+                        Episode {ep.episode_number}
+                      </div>
+                    )}
+
+                    {/* Top-left Episode Badge */}
+                    <div className="absolute top-2 left-2 bg-black/80 backdrop-blur-sm text-white font-black text-[10px] px-1.5 py-0.5 rounded shadow">
+                      EP {String(ep.episode_number).padStart(2, '0')}
+                    </div>
+
+                    {/* Bottom-right Runtime */}
+                    {ep.runtime && (
+                      <div className="absolute bottom-2 right-2 bg-black/80 backdrop-blur-sm text-zinc-300 font-semibold text-[10px] px-1.5 py-0.5 rounded shadow">
+                        {ep.runtime}m
+                      </div>
+                    )}
+
+                    {/* Play Overlay on Hover */}
+                    <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-200">
+                      <div className="w-9 h-9 rounded-full bg-narmax-red text-white flex items-center justify-center shadow-xl transform group-hover:scale-110 transition duration-200">
+                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 ml-0.5">
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Bottom-right Runtime */}
-                  {ep.runtime && (
-                    <div className="absolute bottom-2.5 right-2.5 bg-black/75 backdrop-blur-sm text-zinc-300 font-semibold text-[10px] px-2 py-0.5 rounded">
-                      {ep.runtime}m
-                    </div>
-                  )}
-
-                  {/* Play Overlay on Hover */}
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
-                    <div className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center shadow-lg transform group-hover:scale-110 transition">
-                      <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 ml-0.5">
-                        <path d="M8 5v14l11-7z" />
-                      </svg>
+                  {/* Compact Episode Details */}
+                  <div className="p-2.5 flex-1 flex flex-col justify-between">
+                    <div>
+                      <h3 className="text-xs font-bold text-white group-hover:text-narmax-red transition line-clamp-1">
+                        {ep.episode_number}. {ep.name}
+                      </h3>
+                      <p className="text-[11px] text-zinc-400 line-clamp-2 mt-1 leading-relaxed">
+                        {ep.overview || 'No synopsis available.'}
+                      </p>
                     </div>
                   </div>
-                </div>
+                </Link>
+              ))}
+            </div>
 
-                {/* Episode Details */}
-                <div className="p-3 flex-1 flex flex-col justify-between">
-                  <div>
-                    <h3 className="text-xs sm:text-sm font-bold text-white group-hover:text-narmax-red transition line-clamp-1">
-                      {ep.episode_number}. {ep.name}
-                    </h3>
-                    <p className="text-[11px] text-zinc-400 line-clamp-2 mt-1">
-                      {ep.overview || 'No synopsis available.'}
-                    </p>
-                  </div>
-                </div>
-              </Link>
-            ))}
+            {/* Right fade/arrow hover overlay (desktop) */}
+            <button
+              type="button"
+              onClick={() => scrollEpisodes(1)}
+              className="absolute right-0 top-0 bottom-3 z-20 hidden md:flex items-center justify-center w-12 bg-gradient-to-l from-black/90 via-black/50 to-transparent opacity-0 group-hover/slider:opacity-100 transition-opacity duration-300 text-white rounded-r-xl"
+              aria-label="Slide Right"
+            >
+              <div className="flex h-9 w-9 items-center justify-center rounded-full border border-white/25 bg-black/80 backdrop-blur-md shadow-xl transition-transform hover:scale-110">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </button>
           </div>
         )}
       </section>
