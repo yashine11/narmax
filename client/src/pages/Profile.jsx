@@ -1,20 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import api from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { usePreferences } from '../context/PreferencesContext.jsx';
 import toast from 'react-hot-toast';
-
-const PREF_KEY = 'narmax:watch-preferences';
-
-function defaultPrefs() {
-  return {
-    autoplay: true,
-    autoNext: true,
-    subtitles: false,
-    preferredLanguage: 'en',
-  };
-}
 
 export default function Profile() {
   const { user, refreshUser, logout } = useAuth();
@@ -22,23 +11,12 @@ export default function Profile() {
 
   // Profile fields
   const [username, setUsername] = useState(user?.username || '');
-  const [avatarFile, setAvatarFile] = useState(null);
-  const [avatarPreview, setAvatarPreview] = useState(null);
   const [busyProfile, setBusyProfile] = useState(false);
-
-  // Security / Passwords
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [busyPassword, setBusyPassword] = useState(false);
 
   // Kids PIN
   const [kidsPin, setKidsPin] = useState('');
   const [kidsConfirm, setKidsConfirm] = useState('');
   const [busyKids, setBusyKids] = useState(false);
-
-  // General watch prefs
-  const [prefs, setPrefs] = useState(defaultPrefs);
 
   // Library
   const [likedCast, setLikedCast] = useState([]);
@@ -50,17 +28,6 @@ export default function Profile() {
   }, [user]);
 
   useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(PREF_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw);
-      setPrefs({ ...defaultPrefs(), ...parsed });
-    } catch {
-      setPrefs(defaultPrefs());
-    }
-  }, []);
-
-  useEffect(() => {
     if (!user) return;
     api.get('/api/cast/liked').then((r) => setLikedCast(r.data.cast || [])).catch(() => {});
     api.get('/api/user/favorites').then((r) => setFavorites(r.data.favorites || [])).catch(() => {});
@@ -68,63 +35,28 @@ export default function Profile() {
 
   if (!user) return <Navigate to="/login" replace />;
 
-  const handleAvatarChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setAvatarFile(file);
-    setAvatarPreview(URL.createObjectURL(file));
-  };
-
   const saveProfile = async (event) => {
     event.preventDefault();
+    const clean = username.trim();
+    if (!clean) {
+      toast.error('Name cannot be empty');
+      return;
+    }
+    if (clean === user.username) {
+      toast('No changes to save');
+      return;
+    }
     setBusyProfile(true);
     try {
       const fd = new FormData();
-      if (username && username !== user.username) fd.append('username', username);
-      if (avatarFile) fd.append('avatar', avatarFile);
-      if ([...fd.keys()].length === 0) {
-        toast('No changes to save');
-        setBusyProfile(false);
-        return;
-      }
+      fd.append('username', clean);
       await api.patch('/api/user/me', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
       await refreshUser();
-      setAvatarFile(null);
-      setAvatarPreview(null);
       toast.success('Profile updated successfully');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Update failed');
     } finally {
       setBusyProfile(false);
-    }
-  };
-
-  const savePassword = async (event) => {
-    event.preventDefault();
-    if (!currentPassword || !newPassword) {
-      toast.error('Enter current and new password');
-      return;
-    }
-    if (newPassword.length < 8) {
-      toast.error('New password must be at least 8 characters');
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      toast.error('Password confirmation does not match');
-      return;
-    }
-
-    setBusyPassword(true);
-    try {
-      await api.post('/api/user/password', { currentPassword, newPassword });
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-      toast.success('Password changed');
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Password update failed');
-    } finally {
-      setBusyPassword(false);
     }
   };
 
@@ -149,11 +81,6 @@ export default function Profile() {
     } finally {
       setBusyKids(false);
     }
-  };
-
-  const savePreferences = (nextPrefs) => {
-    setPrefs(nextPrefs);
-    window.localStorage.setItem(PREF_KEY, JSON.stringify(nextPrefs));
   };
 
   const removeFavorite = async (id) => {
@@ -309,31 +236,6 @@ export default function Profile() {
                     ))}
                   </div>
                 </div>
-
-                {/* Playback Toggles */}
-                <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-                  <p className="mb-3 text-sm font-bold text-white">Playback</p>
-                  <div className="space-y-2">
-                    {[
-                      { key: 'autoplay', label: 'Autoplay titles' },
-                      { key: 'autoNext', label: 'Auto next episode' },
-                      { key: 'subtitles', label: 'Default subtitles' },
-                    ].map((item) => (
-                      <label
-                        key={item.key}
-                        className="flex cursor-pointer items-center justify-between rounded-xl border border-white/5 bg-white/[0.02] px-4 py-2.5 transition hover:bg-white/5"
-                      >
-                        <span className="text-xs font-semibold text-zinc-300">{item.label}</span>
-                        <input
-                          type="checkbox"
-                          checked={!!prefs[item.key]}
-                          onChange={(e) => savePreferences({ ...prefs, [item.key]: e.target.checked })}
-                          className="h-4 w-4 accent-narmax-red"
-                        />
-                      </label>
-                    ))}
-                  </div>
-                </div>
               </div>
             </section>
 
@@ -342,32 +244,23 @@ export default function Profile() {
               <div className="mb-6">
                 <p className="text-[11px] font-black uppercase tracking-[0.2em] text-narmax-cyan">Account</p>
                 <h2 className="mt-1 text-2xl font-black text-white">Profile Details</h2>
-                <p className="mt-1 text-xs text-zinc-400">Change your photo, display name, and library.</p>
+                <p className="mt-1 text-xs text-zinc-400">Your profile information and library shortcuts.</p>
               </div>
 
               <form onSubmit={saveProfile} className="space-y-5">
-                {/* Photo */}
-                <div>
-                  <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-                    Profile Photo
-                  </label>
-                  <div className="flex items-center gap-4">
-                    <img
-                      src={avatarPreview || user.avatar || '/uploads/default-avatar.svg'}
-                      alt={user.username}
-                      className="h-20 w-20 rounded-2xl border-2 border-white/15 object-cover shadow-xl"
-                    />
-                    <div>
-                      <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-white/20">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        Upload Photo
-                        <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
-                      </label>
-                      <p className="mt-1.5 text-[11px] text-zinc-500">PNG, JPG, WEBP up to 5MB</p>
-                    </div>
+                {/* Photo & Identity Display */}
+                <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                  <img
+                    src={user.avatar || '/uploads/default-avatar.svg'}
+                    alt={user.username}
+                    className="h-16 w-16 rounded-2xl border-2 border-white/15 object-cover shadow-xl"
+                  />
+                  <div>
+                    <p className="text-base font-black text-white">{user.username}</p>
+                    <p className="text-xs text-zinc-400">{user.email || 'Connected Account'}</p>
+                    <span className="mt-1 inline-block rounded-full bg-white/10 px-2.5 py-0.5 text-[10px] font-semibold text-zinc-300">
+                      {user.role === 'admin' ? 'Administrator' : 'Member'}
+                    </span>
                   </div>
                 </div>
 
@@ -386,7 +279,7 @@ export default function Profile() {
 
                 <button
                   type="submit"
-                  disabled={busyProfile}
+                  disabled={busyProfile || username.trim() === user.username}
                   className="w-full rounded-xl bg-narmax-red py-3 text-sm font-black text-white transition hover:bg-red-700 disabled:opacity-50"
                 >
                   {busyProfile ? 'Updating...' : 'Save Profile Changes'}
@@ -427,81 +320,44 @@ export default function Profile() {
             </section>
           </div>
 
-          {/* ─── SECURITY & KIDS PIN ─── */}
+          {/* ─── KIDS PASSWORD PROTECTION ─── */}
           <section className="glass-panel rounded-3xl p-6 sm:p-8">
-            <div className="grid gap-8 md:grid-cols-2">
-              {/* Change Kids Password / PIN */}
-              <div>
-                <div className="mb-4">
-                  <p className="text-[11px] font-black uppercase tracking-[0.2em] text-narmax-cyan">Kids Protection</p>
-                  <h2 className="mt-1 text-xl font-black text-white">Change Kids Password</h2>
-                  <p className="mt-1 text-xs text-zinc-400">Set or change the PIN required for Kids space access.</p>
-                </div>
+            <div className="max-w-xl">
+              <div className="mb-6">
+                <p className="text-[11px] font-black uppercase tracking-[0.2em] text-narmax-cyan">Kids Protection</p>
+                <h2 className="mt-1 text-2xl font-black text-white">Change Kids Password</h2>
+                <p className="mt-1 text-xs text-zinc-400">Set or change the PIN required for Kids space access.</p>
+              </div>
 
-                <form onSubmit={saveKidsPin} className="space-y-3">
+              <form onSubmit={saveKidsPin} className="space-y-4">
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-zinc-300">New Kids PIN</label>
                   <input
                     type="password"
-                    placeholder="New Kids PIN (min 4 chars)"
+                    placeholder="Min 4 characters"
                     value={kidsPin}
                     onChange={(e) => setKidsPin(e.target.value)}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none transition focus:border-narmax-red"
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-narmax-red focus:bg-white/10"
                   />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-zinc-300">Confirm Kids PIN</label>
                   <input
                     type="password"
-                    placeholder="Confirm Kids PIN"
+                    placeholder="Confirm PIN"
                     value={kidsConfirm}
                     onChange={(e) => setKidsConfirm(e.target.value)}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none transition focus:border-narmax-red"
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-narmax-red focus:bg-white/10"
                   />
-                  <button
-                    type="submit"
-                    disabled={busyKids}
-                    className="w-full rounded-xl border border-white/20 bg-white/10 py-2.5 text-xs font-bold text-white transition hover:bg-white/20 disabled:opacity-50"
-                  >
-                    {busyKids ? 'Updating PIN...' : 'Update Kids Password'}
-                  </button>
-                </form>
-              </div>
-
-              {/* Change Account Password */}
-              <div>
-                <div className="mb-4">
-                  <p className="text-[11px] font-black uppercase tracking-[0.2em] text-zinc-500">Security</p>
-                  <h2 className="mt-1 text-xl font-black text-white">Account Password</h2>
-                  <p className="mt-1 text-xs text-zinc-400">Manage your main account login password.</p>
                 </div>
-
-                <form onSubmit={savePassword} className="space-y-3">
-                  <input
-                    type="password"
-                    placeholder="Current password"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none transition focus:border-narmax-red"
-                  />
-                  <input
-                    type="password"
-                    placeholder="New password (min 8 characters)"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none transition focus:border-narmax-red"
-                  />
-                  <input
-                    type="password"
-                    placeholder="Confirm new password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none transition focus:border-narmax-red"
-                  />
-                  <button
-                    type="submit"
-                    disabled={busyPassword}
-                    className="w-full rounded-xl border border-white/20 bg-white/10 py-2.5 text-xs font-bold text-white transition hover:bg-white/20 disabled:opacity-50"
-                  >
-                    {busyPassword ? 'Updating...' : 'Change Password'}
-                  </button>
-                </form>
-              </div>
+                <button
+                  type="submit"
+                  disabled={busyKids}
+                  className="rounded-xl bg-white/10 px-6 py-2.5 text-xs font-black text-white transition hover:bg-white/20 disabled:opacity-50"
+                >
+                  {busyKids ? 'Updating PIN...' : 'Update Kids Password'}
+                </button>
+              </form>
             </div>
           </section>
 
