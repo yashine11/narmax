@@ -56,6 +56,15 @@ export default function MovieDetail() {
     };
   }, [id, user, loadComments]);
 
+  useEffect(() => {
+    if (window.location.hash === '#comments') {
+      const timer = setTimeout(() => {
+        document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth' });
+      }, 350);
+      return () => clearTimeout(timer);
+    }
+  }, [id]);
+
   const toggleList = async () => {
     if (!user) {
       toast.error('Sign in to use My List');
@@ -257,7 +266,7 @@ export default function MovieDetail() {
         </section>
       )}
 
-      <section className="max-w-4xl mx-auto px-4 py-12 border-t border-zinc-900">
+      <section id="comments" className="max-w-4xl mx-auto px-4 py-12 border-t border-zinc-900 scroll-mt-24">
         <h2 className="text-xl font-bold mb-4">Discussion</h2>
         {user && (
           <form onSubmit={postComment} className="mb-8">

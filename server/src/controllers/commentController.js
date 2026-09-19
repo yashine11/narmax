@@ -52,16 +52,19 @@ export async function create(req, res) {
       const parent = await comments.getCommentById(parentId);
       if (parent && parent.user_id !== req.user.id) {
         const replierName = req.user.username || 'Someone';
-        const movieTitle = full.title || movie.title || 'a title';
+        const movieTitle = req.body.title || movie.title || `TMDB ${tmdb}`;
+        const targetType = (movie.media_type || mediaType) === 'tv' ? 'tv' : 'movie';
+        const targetId = movie.tmdb_id || tmdb;
         await createNotification(
           parent.user_id,
           'reply',
-          `${replierName} replied to your comment`,
-          `"${String(content).trim().slice(0, 80)}"`,
-          `/${movie.media_type === 'tv' ? 'tv' : 'movie'}/${movie.tmdb_id || movie.id}`
+          `${replierName} replied to your comment on "${movieTitle}"`,
+          `"${String(content).trim().slice(0, 100)}"`,
+          `/${targetType}/${targetId}#comments`
         );
       }
     }
+
 
     return res.status(201).json({ comment: full });
   } catch (e) {

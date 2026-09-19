@@ -107,6 +107,7 @@ router.get('/user/progress', authenticate, historyController.progressList);
 
 router.get('/notifications', authenticate, notificationController.list);
 router.patch('/notifications/:id', authenticate, notificationController.markAsRead);
+router.delete('/notifications/:id', authenticate, notificationController.deleteOne);
 
 router.get('/cast/liked', authenticate, castController.listLiked);
 router.post('/cast/toggle', authenticate, castController.toggleLike);

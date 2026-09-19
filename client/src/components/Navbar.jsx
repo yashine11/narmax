@@ -101,16 +101,17 @@ export default function Navbar() {
     setMobileSearchOpen(false);
   }, [navigate]);
 
-  // ESC closes search
+  // ESC closes search and notifications
   useEffect(() => {
     const handleKeyDown = (event) => {
-      if (event.key === 'Escape' && searchOpen) {
-        closeSearch();
+      if (event.key === 'Escape') {
+        if (notifOpen) setNotifOpen(false);
+        if (searchOpen) closeSearch();
       }
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [searchOpen]);
+  }, [searchOpen, notifOpen]);
 
   useEffect(() => {
     const onClickOutside = (event) => {
@@ -282,62 +283,20 @@ export default function Navbar() {
 
               {/* Notification Bell (Desktop, logged-in) */}
               {user && (
-                <div ref={notificationRef} className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setNotifOpen(!notifOpen)}
-                    className="relative flex h-8 w-8 items-center justify-center rounded-full text-zinc-400 transition hover:text-white"
-                    title="Notifications"
-                    aria-label="Notifications"
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
-                      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" />
-                    </svg>
-                    {unreadCount > 0 && (
-                      <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-narmax-red" />
-                    )}
-                  </button>
-
-                  {notifOpen && (
-                    <div className="animate-rise-fade absolute right-0 top-full z-[200] mt-3 w-80 rounded-2xl border border-white/15 bg-black/95 p-3 shadow-2xl backdrop-blur-2xl">
-                      <div className="mb-3 flex items-center justify-between px-2">
-                        <p className="text-[11px] font-bold uppercase tracking-widest text-zinc-500">Notifications</p>
-                        {unreadCount > 0 && (
-                          <button
-                            onClick={() => {
-                              api.patch('/api/notifications/all').then(() => {
-                                setNotifications(notifications.map(n => ({ ...n, is_read: 1 })));
-                              });
-                            }}
-                            className="text-[10px] font-bold text-narmax-red hover:underline"
-                          >
-                            Mark all read
-                          </button>
-                        )}
-                      </div>
-                      <div className="max-h-72 space-y-1.5 overflow-y-auto pr-1">
-                        {notifications.length > 0 ? (
-                          notifications.map((n) => (
-                            <Link
-                              key={n.id}
-                              to={n.link || '#'}
-                              onClick={() => {
-                                if (!n.is_read) api.patch(`/api/notifications/${n.id}`);
-                                setNotifOpen(false);
-                              }}
-                              className={`block rounded-xl border border-white/5 p-3 text-sm transition hover:bg-white/5 ${!n.is_read ? 'bg-white/5' : ''}`}
-                            >
-                              <p className="font-bold text-zinc-100">{n.title}</p>
-                              <p className="mt-0.5 text-xs text-zinc-400 leading-relaxed">{n.message}</p>
-                            </Link>
-                          ))
-                        ) : (
-                          <div className="py-8 text-center text-xs text-zinc-500">No new notifications</div>
-                        )}
-                      </div>
-                    </div>
+                <button
+                  type="button"
+                  onClick={() => setNotifOpen(!notifOpen)}
+                  className="relative flex h-8 w-8 items-center justify-center rounded-full text-zinc-400 transition hover:text-white"
+                  title="Notifications"
+                  aria-label="Notifications"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+                    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" />
+                  </svg>
+                  {unreadCount > 0 && (
+                    <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-narmax-red" />
                   )}
-                </div>
+                </button>
               )}
 
               {/* Clean Expanding Search */}
@@ -469,59 +428,17 @@ export default function Navbar() {
 
             {/* Notifications */}
             {user && (
-              <div ref={notificationRef} className="relative">
-                <button
-                  onClick={() => setNotifOpen(!notifOpen)}
-                  className="relative flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 transition hover:bg-white/10"
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4 text-zinc-300">
-                    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" />
-                  </svg>
-                  {unreadCount > 0 && (
-                    <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-narmax-red ring-2 ring-black" />
-                  )}
-                </button>
-
-                {notifOpen && (
-                  <div className="animate-rise-fade absolute right-0 top-full z-[200] mt-3 w-80 rounded-2xl border border-white/15 bg-black/90 p-3 shadow-2xl backdrop-blur-2xl">
-                    <div className="mb-3 flex items-center justify-between px-2">
-                      <p className="text-[11px] font-bold uppercase tracking-widest text-zinc-500">Notifications</p>
-                      {unreadCount > 0 && (
-                        <button
-                          onClick={() => {
-                            api.patch('/api/notifications/all').then(() => {
-                              setNotifications(notifications.map(n => ({ ...n, is_read: 1 })));
-                            });
-                          }}
-                          className="text-[10px] font-bold text-narmax-cyan hover:underline"
-                        >
-                          Mark all as read
-                        </button>
-                      )}
-                    </div>
-                    <div className="max-h-80 space-y-1.5 overflow-y-auto pr-1">
-                      {notifications.length > 0 ? (
-                        notifications.map((n) => (
-                          <Link
-                            key={n.id}
-                            to={n.link || '#'}
-                            onClick={() => {
-                              if (!n.is_read) api.patch(`/api/notifications/${n.id}`);
-                              setNotifOpen(false);
-                            }}
-                            className={`block rounded-xl border border-white/5 p-3 transition hover:bg-white/5 ${!n.is_read ? 'bg-white/5' : ''}`}
-                          >
-                            <p className="text-sm font-bold text-zinc-100">{n.title}</p>
-                            <p className="mt-1 text-xs leading-relaxed text-zinc-400">{n.message}</p>
-                          </Link>
-                        ))
-                      ) : (
-                        <div className="py-8 text-center text-xs text-zinc-500">No new notifications</div>
-                      )}
-                    </div>
-                  </div>
+              <button
+                onClick={() => setNotifOpen(!notifOpen)}
+                className="relative flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 transition hover:bg-white/10"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4 text-zinc-300">
+                  <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" />
+                </svg>
+                {unreadCount > 0 && (
+                  <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-narmax-red ring-2 ring-black" />
                 )}
-              </div>
+              </button>
             )}
 
             {/* Profile / Settings — Mobile */}
@@ -675,6 +592,151 @@ export default function Navbar() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ── Notification Modal ── */}
+      {notifOpen && user && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-[300] bg-black/50"
+            onClick={() => setNotifOpen(false)}
+          />
+          {/* Modal panel */}
+          <div
+            className="fixed left-1/2 top-1/2 z-[310] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-zinc-800 bg-zinc-950 shadow-2xl"
+            style={{ maxHeight: '80vh' }}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-zinc-800 px-5 py-4">
+              <div className="flex items-center gap-2">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4 text-zinc-400">
+                  <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" />
+                </svg>
+                <h2 className="text-sm font-bold text-white">Notifications</h2>
+                {unreadCount > 0 && (
+                  <span className="rounded-full bg-narmax-red px-2 py-0.5 text-[10px] font-bold text-white">
+                    {unreadCount}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-3">
+                {unreadCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      api.patch('/api/notifications/all').then(() => {
+                        setNotifications(notifications.map(n => ({ ...n, is_read: 1 })));
+                      });
+                    }}
+                    className="text-[11px] font-semibold text-zinc-400 hover:text-white"
+                  >
+                    Mark all read
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setNotifOpen(false)}
+                  className="flex h-7 w-7 items-center justify-center rounded-lg bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white"
+                  aria-label="Close"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-3.5 w-3.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* List */}
+            <div className="overflow-y-auto" style={{ maxHeight: 'calc(80vh - 65px)' }}>
+              {notifications.length > 0 ? (
+                <ul className="divide-y divide-zinc-800/60 px-2 py-2">
+                  {notifications.map((n) => {
+                    const isReply = n.type === 'reply';
+                    const isAdmin = n.type === 'admin';
+                    return (
+                      <li key={n.id} className={`group relative rounded-xl ${!n.is_read ? 'bg-zinc-900' : ''}`}>
+                        <Link
+                          to={n.link || '#'}
+                          onClick={() => {
+                            if (!n.is_read) {
+                              api.patch(`/api/notifications/${n.id}`);
+                              setNotifications(notifications.map(x =>
+                                x.id === n.id ? { ...x, is_read: 1 } : x
+                              ));
+                            }
+                            setNotifOpen(false);
+                          }}
+                          className="flex items-start gap-3 px-3 py-3.5 pr-10"
+                        >
+                          {/* Type icon */}
+                          <div className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${
+                            isAdmin ? 'bg-[#00b3ff]/10 text-[#00b3ff]' :
+                            isReply ? 'bg-zinc-800 text-zinc-300' :
+                            'bg-zinc-800 text-zinc-400'
+                          }`}>
+                            {isAdmin ? (
+                              <svg viewBox="-2.4 -2.4 28.80 28.80" fill="#00b3ff" stroke="#00b3ff" strokeWidth="0.00024" className="h-4 w-4">
+                                <path d="M12 14v8H4a8 8 0 0 1 8-8zm0-1c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm9 4h1v5h-8v-5h1v-1a3 3 0 0 1 6 0v1zm-2 0v-1a1 1 0 0 0-2 0v1h2z" />
+                              </svg>
+                            ) : (
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3.5 w-3.5">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                              </svg>
+                            )}
+                          </div>
+
+                          {/* Content */}
+                          <div className="min-w-0 flex-1">
+                            <p className={`text-sm leading-snug ${!n.is_read ? 'font-semibold text-white' : 'font-normal text-zinc-300'}`}>
+                              {n.title}
+                            </p>
+                            {n.message && (
+                              <p className="mt-1 text-xs leading-relaxed text-zinc-500 line-clamp-2">
+                                {n.message}
+                              </p>
+                            )}
+                            <p className="mt-1.5 text-[10px] text-zinc-600">
+                              {n.created_at ? new Date(n.created_at).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : ''}
+                            </p>
+                          </div>
+
+                          {/* Unread dot */}
+                          {!n.is_read && (
+                            <span className="absolute right-10 top-4 h-1.5 w-1.5 rounded-full bg-narmax-red" />
+                          )}
+                        </Link>
+
+                        {/* Delete button */}
+                        <button
+                          type="button"
+                          title="Dismiss"
+                          onClick={() => {
+                            api.delete(`/api/notifications/${n.id}`);
+                            setNotifications(notifications.filter(x => x.id !== n.id));
+                          }}
+                          className="absolute right-3 top-3.5 flex h-6 w-6 items-center justify-center rounded-md text-zinc-600 opacity-0 transition hover:bg-zinc-800 hover:text-zinc-300 group-hover:opacity-100"
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3 w-3">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-8 w-8 text-zinc-700">
+                    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" />
+                  </svg>
+                  <p className="text-sm font-medium text-zinc-500">No notifications</p>
+                  <p className="text-xs text-zinc-600">You're all caught up</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
       )}
 
     </>
