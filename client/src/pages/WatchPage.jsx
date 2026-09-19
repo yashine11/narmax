@@ -12,14 +12,8 @@ const DEFAULT_EPISODE_RUNTIME_MIN = 45;
 const SOURCE_READY_TIMEOUT_MS = 14000;
 const ALLOWED_PLAYER_ORIGINS = new Set([
   'https://moviesapi.to',
-  'https://vidsrc.cc',
   'https://vaplayer.ru',
   'https://vidsrc-embed.ru',
-  'https://vidlink.pro',
-  'https://multiembed.mov',
-  'https://embed.smashystream.com',
-  'https://vidsrc.to',
-  'https://www.2embed.cc',
 ]);
 
 function clampPercent(value) {
