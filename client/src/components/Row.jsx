@@ -1,16 +1,20 @@
 import { useRef } from 'react';
 import MovieGridCard from './MovieGridCard.jsx';
 import { useProgress } from '../context/ProgressContext.jsx';
+import { usePreferences } from '../context/PreferencesContext.jsx';
 
 export default function Row({ title, movies, kind = 'movie' }) {
   const { getProgress } = useProgress();
+  const { cardStyle } = usePreferences() || {};
+  const isLandscape = cardStyle === 'backdrops';
   const railRef = useRef(null);
 
   if (!movies?.length) return null;
 
   const scroll = (direction) => {
     if (!railRef.current) return;
-    railRef.current.scrollBy({ left: direction * 700, behavior: 'smooth' });
+    const distance = isLandscape ? 900 : 700;
+    railRef.current.scrollBy({ left: direction * distance, behavior: 'smooth' });
   };
 
   return (
@@ -60,7 +64,14 @@ export default function Row({ title, movies, kind = 'movie' }) {
               ? movie
               : { ...movie, rank: index + 1, badges: baseBadges.slice(0, 2) };
           return (
-            <div key={`${movie.id}-${title}`} className="group/item relative z-[1] w-[152px] shrink-0 snap-start transition-all hover:z-[99] sm:w-[176px] md:w-[192px]">
+            <div
+              key={`${movie.id}-${title}`}
+              className={`group/item relative z-[1] shrink-0 snap-start transition-all hover:z-[99] ${
+                isLandscape
+                  ? 'w-[280px] sm:w-[340px] md:w-[380px] lg:w-[420px]'
+                  : 'w-[152px] sm:w-[176px] md:w-[192px]'
+              }`}
+            >
               <MovieGridCard
                 movie={cardMovie}
                 kind={mediaType}

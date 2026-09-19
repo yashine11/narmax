@@ -68,7 +68,7 @@ function ContinueWatchingRow({ items }) {
               key={`${mediaType}:${item.id}`}
               className={`relative z-[1] shrink-0 snap-start transition-all hover:z-[99] ${
                 isLandscape
-                  ? 'w-[230px] sm:w-[270px] md:w-[310px]'
+                  ? 'w-[280px] sm:w-[340px] md:w-[380px] lg:w-[420px]'
                   : 'w-[152px] sm:w-[176px] md:w-[192px]'
               }`}
             >
