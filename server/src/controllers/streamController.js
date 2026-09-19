@@ -14,11 +14,11 @@ export function embedUrls(req, res) {
   }
 
   const sourceOptions = { imdbId, resumeAt, dsLang };
+
   const sources =
     type === 'tv'
       ? getLabeledSourcesForTv(tmdbId, season, episode, sourceOptions)
       : getLabeledSourcesForMovie(tmdbId, sourceOptions);
-  const urls = sources.map((s) => s.url);
 
   return res.json({
     tmdbId,
@@ -27,6 +27,5 @@ export function embedUrls(req, res) {
     season: type === 'tv' ? season : null,
     episode: type === 'tv' ? episode : null,
     sources,
-    urls,
   });
 }

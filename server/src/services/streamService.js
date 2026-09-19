@@ -1,3 +1,7 @@
+// ─── Stream Service ───────────────────────────────────────────────────────────
+// Builds embed URLs for all 8 streaming sources.
+// ──────────────────────────────────────────────────────────────────────────────
+
 function normalizeTmdbId(id) {
   const n = Number(id);
   return Number.isFinite(n) && n > 0 ? String(Math.floor(n)) : '';
@@ -20,6 +24,7 @@ function withResumeParam(url, resumeAt) {
   return `${url}${separator}resumeAt=${at}`;
 }
 
+// ─── MOVIE SOURCES ─────────────────────────────────────────────────────────────
 function labeledMovie(tmdbId, options = {}) {
   const tmdb = normalizeTmdbId(tmdbId);
   if (!tmdb) return [];
@@ -28,7 +33,6 @@ function labeledMovie(tmdbId, options = {}) {
   const vaplayerId = imdb || tmdb;
 
   return [
-    // 1. VidLink - Fast 4K/1080p, custom NARMAX cyan theme, multi-audio (Turkish/Hindi/English/Spanish/French)
     {
       id: 'vidlink',
       label: 'Server 1 (Ultra HD)',
@@ -38,7 +42,6 @@ function labeledMovie(tmdbId, options = {}) {
         resumeAt
       ),
     },
-    // 2. MultiEmbed - Unrivaled coverage for Turkish Diziler, Indian / Bollywood, and World cinema
     {
       id: 'multiembed',
       label: 'Server 2 (Turkish & World)',
@@ -48,42 +51,36 @@ function labeledMovie(tmdbId, options = {}) {
         resumeAt
       ),
     },
-    // 3. SmashyStream - Complete Anime & Bollywood catalog with 5 internal mirrors
     {
       id: 'smashystream',
       label: 'Server 3 (Anime & Indian)',
       badge: 'Anime & Indian',
       url: withResumeParam(`https://embed.smashystream.com/playere.php?tmdb=${tmdb}`, resumeAt),
     },
-    // 4. VidSrc To - Top global streaming provider
     {
       id: 'vidsrc_to',
       label: 'Server 4 (VidSrc Fast)',
       badge: 'Fast HD',
       url: withResumeParam(`https://vidsrc.to/embed/movie/${tmdb}`, resumeAt),
     },
-    // 5. 2Embed - Deep archive for Asian and Turkish dramas
     {
       id: 'two_embed',
       label: 'Server 5 (2Embed)',
       badge: 'Global Archive',
       url: withResumeParam(`https://www.2embed.cc/embed/${tmdb}`, resumeAt),
     },
-    // 6. VaPlayer (Existing European / Russian mirror)
     {
       id: 'vaplayer_ru',
       label: 'Server 6 (VaPlayer)',
       badge: 'Mirror',
       url: withResumeParam(`https://vaplayer.ru/embed/movie/${vaplayerId}`, resumeAt),
     },
-    // 7. MoviesAPI (Existing Backup)
     {
       id: 'moviesapi_to',
       label: 'Server 7 (MoviesAPI)',
       badge: 'Backup',
       url: withResumeParam(`https://moviesapi.to/embed/movie/${tmdb}`, resumeAt),
     },
-    // 8. VidSrc CC (Existing Backup)
     {
       id: 'vidsrc_cc',
       label: 'Server 8 (VidSrc CC)',
@@ -93,6 +90,7 @@ function labeledMovie(tmdbId, options = {}) {
   ];
 }
 
+// ─── TV SOURCES ────────────────────────────────────────────────────────────────
 function labeledTv(tmdbId, season, episode, options = {}) {
   const tmdb = normalizeTmdbId(tmdbId);
   if (!tmdb) return [];
@@ -103,7 +101,6 @@ function labeledTv(tmdbId, season, episode, options = {}) {
   const vaplayerId = imdb || tmdb;
 
   return [
-    // 1. VidLink - Fast 4K/1080p, custom NARMAX cyan theme, multi-audio
     {
       id: 'vidlink',
       label: 'Server 1 (Ultra HD)',
@@ -113,7 +110,6 @@ function labeledTv(tmdbId, season, episode, options = {}) {
         resumeAt
       ),
     },
-    // 2. MultiEmbed - Unrivaled coverage for Turkish Diziler, Indian series, and World television
     {
       id: 'multiembed',
       label: 'Server 2 (Turkish & World)',
@@ -123,7 +119,6 @@ function labeledTv(tmdbId, season, episode, options = {}) {
         resumeAt
       ),
     },
-    // 3. SmashyStream - Complete Anime & Bollywood series catalog with 5 internal mirrors
     {
       id: 'smashystream',
       label: 'Server 3 (Anime & Indian)',
@@ -133,35 +128,30 @@ function labeledTv(tmdbId, season, episode, options = {}) {
         resumeAt
       ),
     },
-    // 4. VidSrc To - Top global streaming provider
     {
       id: 'vidsrc_to',
       label: 'Server 4 (VidSrc Fast)',
       badge: 'Fast HD',
       url: withResumeParam(`https://vidsrc.to/embed/tv/${tmdb}/${s}/${e}`, resumeAt),
     },
-    // 5. 2Embed - Deep archive for Asian and Turkish dramas
     {
       id: 'two_embed',
       label: 'Server 5 (2Embed)',
       badge: 'Global Archive',
       url: withResumeParam(`https://www.2embed.cc/embedtv/${tmdb}&s=${s}&e=${e}`, resumeAt),
     },
-    // 6. VaPlayer (Existing European / Russian mirror)
     {
       id: 'vaplayer_ru',
       label: 'Server 6 (VaPlayer)',
       badge: 'Mirror',
       url: withResumeParam(`https://vaplayer.ru/embed/tv/${vaplayerId}/${s}/${e}`, resumeAt),
     },
-    // 7. MoviesAPI (Existing Backup)
     {
       id: 'moviesapi_to',
       label: 'Server 7 (MoviesAPI)',
       badge: 'Backup',
       url: withResumeParam(`https://moviesapi.to/embed/tv/${tmdb}/${s}/${e}`, resumeAt),
     },
-    // 8. VidSrc CC (Existing Backup)
     {
       id: 'vidsrc_cc',
       label: 'Server 8 (VidSrc CC)',
@@ -171,20 +161,21 @@ function labeledTv(tmdbId, season, episode, options = {}) {
   ];
 }
 
-/** @deprecated use getLabeledSourcesForMovie */
-export function getEmbedUrlsForMovie(tmdbId, options = {}) {
-  return labeledMovie(tmdbId, options).map((source) => source.url);
-}
-
-/** @deprecated use getLabeledSourcesForTv */
-export function getEmbedUrlsForTv(tmdbTvId, season = 1, episode = 1, options = {}) {
-  return labeledTv(tmdbTvId, season, episode, options).map((source) => source.url);
-}
-
+// ─── EXPORTS ───────────────────────────────────────────────────────────────────
 export function getLabeledSourcesForMovie(tmdbId, options = {}) {
   return labeledMovie(tmdbId, options);
 }
 
 export function getLabeledSourcesForTv(tmdbTvId, season = 1, episode = 1, options = {}) {
   return labeledTv(tmdbTvId, season, episode, options);
+}
+
+/** @deprecated */
+export function getEmbedUrlsForMovie(tmdbId, options = {}) {
+  return labeledMovie(tmdbId, options).map((s) => s.url);
+}
+
+/** @deprecated */
+export function getEmbedUrlsForTv(tmdbTvId, season = 1, episode = 1, options = {}) {
+  return labeledTv(tmdbTvId, season, episode, options).map((s) => s.url);
 }
