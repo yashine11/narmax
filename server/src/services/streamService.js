@@ -62,43 +62,43 @@ function labeledMovie(tmdbId, options = {}) {
   else vidsrcParams.set('tmdb', tmdb);
 
   return [
-    // 1. Main Server — moviesapi.to (correct format: /movie/$id)
+    // 1. Server 1 — VidSrc SBS (No Ads, custom accent color, timestamp resume)
+    {
+      id: 'vidsrc_sbs',
+      label: 'Server 1',
+      badge: 'No Ads',
+      url: withVidsrcSbsParams(`https://vidsrc.sbs/embed/movie/${tmdb}`, resumeAt),
+    },
+    // 2. Server 2 — Cinextream (Vidstack / ArtPlayer, Fast HD)
+    {
+      id: 'cinextream',
+      label: 'Server 2',
+      badge: 'Fast HD',
+      url: `https://cinextream.cc/api/embed/movie/${tmdb}?color=e50914`,
+    },
+    // 3. Server 3 — MoviesAPI (HD embed)
     {
       id: 'moviesapi_main',
-      label: 'Main Server',
+      label: 'Server 3',
       badge: 'HD',
       url: withThemeAndTime(`https://moviesapi.to/movie/${tmdb}`, resumeAt),
     },
-    // 2. Server 2 — VaPlayer (original main server)
+    // 4. Server 4 — VaPlayer (Mirror)
     {
       id: 'vaplayer_ru',
-      label: 'Server 2',
+      label: 'Server 4',
       badge: 'Mirror',
       url: withResumeParam(`https://vaplayer.ru/embed/movie/${vaplayerId}`, resumeAt),
     },
-    // 3. Server 3 — VidSrc Embed (original backup 3)
+    // 5. Server 5 — VidSrc Embed (Backup)
     {
       id: 'vidsrc_embed_ru',
-      label: 'Server 3',
+      label: 'Server 5',
       badge: 'Backup',
       url: withResumeParam(
         `https://vidsrc-embed.ru/embed/movie?${vidsrcParams.toString()}`,
         resumeAt
       ),
-    },
-    // 4. Server 4 — Cinextream (Vidstack / ArtPlayer, Fast HD)
-    {
-      id: 'cinextream',
-      label: 'Server 4',
-      badge: 'Fast HD',
-      url: `https://cinextream.cc/api/embed/movie/${tmdb}?color=e50914`,
-    },
-    // 5. Server 5 — VidSrc SBS (No Ads, custom accent color, timestamp resume)
-    {
-      id: 'vidsrc_sbs',
-      label: 'Server 5',
-      badge: 'No Ads',
-      url: withVidsrcSbsParams(`https://vidsrc.sbs/embed/movie/${tmdb}`, resumeAt),
     },
   ];
 }
@@ -125,43 +125,43 @@ function labeledTv(tmdbId, season, episode, options = {}) {
   else vidsrcParams.set('tmdb', tmdb);
 
   return [
-    // 1. Main Server — moviesapi.to (correct format: /tv/$id/$s/$e)
+    // 1. Server 1 — VidSrc SBS (No Ads, custom accent color, timestamp resume)
+    {
+      id: 'vidsrc_sbs',
+      label: 'Server 1',
+      badge: 'No Ads',
+      url: withVidsrcSbsParams(`https://vidsrc.sbs/embed/tv/${tmdb}/${s}/${e}`, resumeAt),
+    },
+    // 2. Server 2 — Cinextream (Vidstack / ArtPlayer, Fast HD)
+    {
+      id: 'cinextream',
+      label: 'Server 2',
+      badge: 'Fast HD',
+      url: `https://cinextream.cc/api/embed/tv/${tmdb}/${s}/${e}?color=e50914`,
+    },
+    // 3. Server 3 — MoviesAPI (HD embed)
     {
       id: 'moviesapi_main',
-      label: 'Main Server',
+      label: 'Server 3',
       badge: 'HD',
       url: withThemeAndTime(`https://moviesapi.to/tv/${tmdb}/${s}/${e}`, resumeAt),
     },
-    // 2. Server 2 — VaPlayer (original main server)
+    // 4. Server 4 — VaPlayer (Mirror)
     {
       id: 'vaplayer_ru',
-      label: 'Server 2',
+      label: 'Server 4',
       badge: 'Mirror',
       url: withResumeParam(`https://vaplayer.ru/embed/tv/${vaplayerId}/${s}/${e}`, resumeAt),
     },
-    // 3. Server 3 — VidSrc Embed (original backup 3)
+    // 5. Server 5 — VidSrc Embed (Backup)
     {
       id: 'vidsrc_embed_ru',
-      label: 'Server 3',
+      label: 'Server 5',
       badge: 'Backup',
       url: withResumeParam(
         `https://vidsrc-embed.ru/embed/tv?${vidsrcParams.toString()}`,
         resumeAt
       ),
-    },
-    // 4. Server 4 — Cinextream (Vidstack / ArtPlayer, Fast HD)
-    {
-      id: 'cinextream',
-      label: 'Server 4',
-      badge: 'Fast HD',
-      url: `https://cinextream.cc/api/embed/tv/${tmdb}/${s}/${e}?color=e50914`,
-    },
-    // 5. Server 5 — VidSrc SBS (No Ads, custom accent color, timestamp resume)
-    {
-      id: 'vidsrc_sbs',
-      label: 'Server 5',
-      badge: 'No Ads',
-      url: withVidsrcSbsParams(`https://vidsrc.sbs/embed/tv/${tmdb}/${s}/${e}`, resumeAt),
     },
   ];
 }
