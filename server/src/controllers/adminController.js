@@ -151,8 +151,9 @@ export async function broadcastMessage(req, res) {
     } else {
       return res.status(400).json({ message: 'Invalid target' });
     }
+    const adminAvatar = req.user?.avatar || null;
     for (const uid of targetIds) {
-      await createNotification(uid, 'admin', title, message, link || null);
+      await createNotification(uid, 'admin', title || 'admins', message, link || null, adminAvatar);
     }
     return res.json({ success: true, sent: targetIds.length });
   } catch (e) {

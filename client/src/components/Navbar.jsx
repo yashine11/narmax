@@ -44,6 +44,20 @@ function HamburgerIcon({ open }) {
   );
 }
 
+function formatTimeAgo(dateString) {
+  if (!dateString) return '';
+  const d = new Date(dateString.includes('T') ? dateString : dateString.replace(' ', 'T') + 'Z');
+  const now = new Date();
+  const diffSec = Math.max(0, Math.floor((now - d) / 1000));
+  if (diffSec < 60) return 'just now';
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin} min ago`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr} ${diffHr === 1 ? 'hour' : 'hours'} ago`;
+  const diffDays = Math.floor(diffHr / 24);
+  return `${diffDays} ${diffDays === 1 ? 'day' : 'days'} ago`;
+}
+
 export default function Navbar() {
   const { user, logout } = useAuth();
   const location = useLocation();
@@ -63,6 +77,7 @@ export default function Navbar() {
 
   const [notifications, setNotifications] = useState([]);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [notifTab, setNotifTab] = useState('all');
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   const closeSearch = () => {
@@ -599,141 +614,158 @@ export default function Navbar() {
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 z-[300] bg-black/50"
+            className="fixed inset-0 z-[300] bg-black/60 backdrop-blur-[2px]"
             onClick={() => setNotifOpen(false)}
           />
           {/* Modal panel */}
           <div
-            className="fixed left-1/2 top-1/2 z-[310] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-zinc-800 bg-zinc-950 shadow-2xl"
-            style={{ maxHeight: '80vh' }}
+            className="fixed left-1/2 top-1/2 z-[310] w-[94vw] max-w-xl sm:max-w-2xl min-h-[560px] max-h-[86vh] -translate-x-1/2 -translate-y-1/2 rounded-3xl border border-[#8898EB] bg-[#E5E8FA] p-6 sm:p-8 md:p-10 flex flex-col justify-between shadow-2xl"
           >
-            {/* Header */}
-            <div className="flex items-center justify-between border-b border-zinc-800 px-5 py-4">
-              <div className="flex items-center gap-2">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4 text-zinc-400">
-                  <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" />
-                </svg>
-                <h2 className="text-sm font-bold text-white">Notifications</h2>
-                {unreadCount > 0 && (
-                  <span className="rounded-full bg-narmax-red px-2 py-0.5 text-[10px] font-bold text-white">
-                    {unreadCount}
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-3">
-                {unreadCount > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      api.patch('/api/notifications/all').then(() => {
-                        setNotifications(notifications.map(n => ({ ...n, is_read: 1 })));
-                      });
-                    }}
-                    className="text-[11px] font-semibold text-zinc-400 hover:text-white"
-                  >
-                    Mark all read
-                  </button>
-                )}
+            <div>
+              {/* Header */}
+              <div className="flex items-start justify-between">
+                <h2 className="text-2xl sm:text-3xl font-bold text-zinc-950 tracking-tight">
+                  Your Notifications
+                </h2>
                 <button
                   type="button"
                   onClick={() => setNotifOpen(false)}
-                  className="flex h-7 w-7 items-center justify-center rounded-lg bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white"
+                  className="text-zinc-500 hover:text-zinc-900 transition p-1"
                   aria-label="Close"
                 >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-3.5 w-3.5">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-5 w-5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                   </svg>
+                </button>
+              </div>
+
+              {/* Tabs */}
+              <div className="flex items-center gap-6 mt-6 border-b border-transparent">
+                <button
+                  type="button"
+                  onClick={() => setNotifTab('all')}
+                  className={`relative pb-2 flex items-center gap-2 text-sm sm:text-base font-bold transition ${
+                    notifTab === 'all'
+                      ? 'text-zinc-950 border-b-2 border-blue-600'
+                      : 'text-zinc-500 hover:text-zinc-900 border-b-2 border-transparent'
+                  }`}
+                >
+                  <span>All</span>
+                  <span className="rounded-full bg-[#CED4F7] px-2.5 py-0.5 text-xs font-bold text-zinc-800">
+                    {notifications.length}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setNotifTab('admin')}
+                  className={`relative pb-2 flex items-center gap-2 text-sm sm:text-base font-bold transition ${
+                    notifTab === 'admin'
+                      ? 'text-zinc-950 border-b-2 border-blue-600'
+                      : 'text-zinc-500 hover:text-zinc-900 border-b-2 border-transparent'
+                  }`}
+                >
+                  <span>ADMIN</span>
+                  <span className="rounded-full bg-[#CED4F7] px-2.5 py-0.5 text-xs font-bold text-zinc-800">
+                    {notifications.filter((n) => n.type === 'admin').length}
+                  </span>
                 </button>
               </div>
             </div>
 
             {/* List */}
-            <div className="overflow-y-auto" style={{ maxHeight: 'calc(80vh - 65px)' }}>
-              {notifications.length > 0 ? (
-                <ul className="divide-y divide-zinc-800/60 px-2 py-2">
-                  {notifications.map((n) => {
-                    const isReply = n.type === 'reply';
+            <div className="flex-1 overflow-y-auto my-3 pr-1" style={{ maxHeight: 'calc(86vh - 240px)' }}>
+              {(notifTab === 'admin' ? notifications.filter((n) => n.type === 'admin') : notifications).length > 0 ? (
+                <ul className="divide-y divide-zinc-800">
+                  {(notifTab === 'admin' ? notifications.filter((n) => n.type === 'admin') : notifications).map((n) => {
                     const isAdmin = n.type === 'admin';
                     return (
-                      <li key={n.id} className={`group relative rounded-xl ${!n.is_read ? 'bg-zinc-900' : ''}`}>
+                      <li key={n.id} className="py-3.5 sm:py-4">
                         <Link
                           to={n.link || '#'}
                           onClick={() => {
                             if (!n.is_read) {
                               api.patch(`/api/notifications/${n.id}`);
-                              setNotifications(notifications.map(x =>
+                              setNotifications(notifications.map((x) =>
                                 x.id === n.id ? { ...x, is_read: 1 } : x
                               ));
                             }
                             setNotifOpen(false);
                           }}
-                          className="flex items-start gap-3 px-3 py-3.5 pr-10"
+                          className="flex items-center justify-between gap-4 group"
                         >
-                          {/* Type icon */}
-                          <div className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${
-                            isAdmin ? 'bg-[#00b3ff]/10 text-[#00b3ff]' :
-                            isReply ? 'bg-zinc-800 text-zinc-300' :
-                            'bg-zinc-800 text-zinc-400'
-                          }`}>
-                            {isAdmin ? (
-                              <svg viewBox="-2.4 -2.4 28.80 28.80" fill="#00b3ff" stroke="#00b3ff" strokeWidth="0.00024" className="h-4 w-4">
-                                <path d="M12 14v8H4a8 8 0 0 1 8-8zm0-1c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm9 4h1v5h-8v-5h1v-1a3 3 0 0 1 6 0v1zm-2 0v-1a1 1 0 0 0-2 0v1h2z" />
-                              </svg>
-                            ) : (
-                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3.5 w-3.5">
-                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                              </svg>
-                            )}
-                          </div>
-
-                          {/* Content */}
-                          <div className="min-w-0 flex-1">
-                            <p className={`text-sm leading-snug ${!n.is_read ? 'font-semibold text-white' : 'font-normal text-zinc-300'}`}>
-                              {n.title}
-                            </p>
-                            {n.message && (
-                              <p className="mt-1 text-xs leading-relaxed text-zinc-500 line-clamp-2">
-                                {n.message}
+                          {/* Left Avatar & Content */}
+                          <div className="flex items-center gap-4 min-w-0">
+                            <div className="h-12 w-12 sm:h-14 sm:w-14 shrink-0 rounded-full overflow-hidden bg-zinc-300 border border-black/10 flex items-center justify-center">
+                              {isAdmin ? (
+                                <AdminAvatar className="h-9 w-9 sm:h-10 sm:w-10" />
+                              ) : n.avatar ? (
+                                <img src={n.avatar} alt="" className="h-full w-full object-cover" />
+                              ) : (
+                                <div className="flex h-full w-full items-center justify-center bg-zinc-300 font-bold text-zinc-700 text-lg">
+                                  {n.title?.charAt(0)?.toUpperCase() || 'U'}
+                                </div>
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-sm sm:text-base font-bold text-zinc-950 truncate">
+                                {n.title}
                               </p>
-                            )}
-                            <p className="mt-1.5 text-[10px] text-zinc-600">
-                              {n.created_at ? new Date(n.created_at).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : ''}
-                            </p>
+                              <p className="text-xs text-zinc-500 mt-0.5">
+                                {formatTimeAgo(n.created_at)}
+                              </p>
+                            </div>
                           </div>
 
-                          {/* Unread dot */}
+                          {/* Right unread indicator */}
                           {!n.is_read && (
-                            <span className="absolute right-10 top-4 h-1.5 w-1.5 rounded-full bg-narmax-red" />
+                            <span className="h-2.5 w-2.5 rounded-full bg-blue-600 shrink-0 mr-1" />
                           )}
                         </Link>
-
-                        {/* Delete button */}
-                        <button
-                          type="button"
-                          title="Dismiss"
-                          onClick={() => {
-                            api.delete(`/api/notifications/${n.id}`);
-                            setNotifications(notifications.filter(x => x.id !== n.id));
-                          }}
-                          className="absolute right-3 top-3.5 flex h-6 w-6 items-center justify-center rounded-md text-zinc-600 opacity-0 transition hover:bg-zinc-800 hover:text-zinc-300 group-hover:opacity-100"
-                        >
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3 w-3">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
                       </li>
                     );
                   })}
                 </ul>
               ) : (
-                <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-8 w-8 text-zinc-700">
-                    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" />
-                  </svg>
+                <div className="flex flex-col items-center justify-center py-20 text-center">
                   <p className="text-sm font-medium text-zinc-500">No notifications</p>
-                  <p className="text-xs text-zinc-600">You're all caught up</p>
                 </div>
               )}
+            </div>
+
+            {/* Bottom Actions & Expiration Notice */}
+            <div>
+              <div className="flex items-center justify-between pt-2">
+                <button
+                  type="button"
+                  title="Delete all notifications"
+                  onClick={async () => {
+                    await api.delete('/api/notifications/all');
+                    setNotifications([]);
+                  }}
+                  className="text-zinc-600 hover:text-zinc-950 transition p-1"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await api.patch('/api/notifications/all');
+                    setNotifications(notifications.map((n) => ({ ...n, is_read: 1 })));
+                  }}
+                  className="text-blue-600 hover:text-blue-800 text-sm font-semibold transition"
+                >
+                  Mark all as read
+                </button>
+              </div>
+
+              {/* 48H Auto deletion notice */}
+              <div className="mt-4 text-center">
+                <span className="text-xs font-semibold text-red-600 underline">
+                  All notifications get delet after 48H
+                </span>
+              </div>
             </div>
           </div>
         </>

@@ -3,9 +3,9 @@ import { db } from '../config/database.js';
 export async function list(req, res) {
   try {
     const userId = req.user.id;
-    // Auto-delete notifications older than 24 hours
+    // Auto-delete notifications older than 48 hours
     await db.prepare(
-      `DELETE FROM notifications WHERE created_at < datetime('now', '-24 hours')`
+      `DELETE FROM notifications WHERE created_at < datetime('now', '-48 hours')`
     ).run();
     const notifications = await db.prepare(`
       SELECT * FROM notifications 
@@ -40,7 +40,11 @@ export async function deleteOne(req, res) {
   try {
     const userId = req.user.id;
     const { id } = req.params;
-    await db.prepare('DELETE FROM notifications WHERE id = ? AND user_id = ?').run(id, userId);
+    if (id === 'all') {
+      await db.prepare('DELETE FROM notifications WHERE user_id = ?').run(userId);
+    } else {
+      await db.prepare('DELETE FROM notifications WHERE id = ? AND user_id = ?').run(id, userId);
+    }
     return res.json({ success: true });
   } catch (e) {
     console.error(e);
@@ -48,13 +52,20 @@ export async function deleteOne(req, res) {
   }
 }
 
-export async function createNotification(userId, type, title, message, link) {
+export async function createNotification(userId, type, title, message, link, avatar = null) {
   try {
     await db.prepare(`
-      INSERT INTO notifications (user_id, type, title, message, link)
-      VALUES (?, ?, ?, ?, ?)
-    `).run(userId, type, title, message, link);
+      INSERT INTO notifications (user_id, type, title, message, link, avatar)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(userId, type, title, message, link, avatar);
   } catch (e) {
-    console.error('Failed to create notification:', e);
+    try {
+      await db.prepare(`
+        INSERT INTO notifications (user_id, type, title, message, link)
+        VALUES (?, ?, ?, ?, ?)
+      `).run(userId, type, title, message, link);
+    } catch (err) {
+      console.error('Failed to create notification:', err);
+    }
   }
 }

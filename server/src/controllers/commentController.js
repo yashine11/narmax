@@ -55,12 +55,14 @@ export async function create(req, res) {
         const movieTitle = req.body.title || movie.title || `TMDB ${tmdb}`;
         const targetType = (movie.media_type || mediaType) === 'tv' ? 'tv' : 'movie';
         const targetId = movie.tmdb_id || tmdb;
+        const replierAvatar = req.user.avatar || null;
         await createNotification(
           parent.user_id,
           'reply',
-          `${replierName} replied to your comment on "${movieTitle}"`,
+          `${replierName} / ${movieTitle}`,
           `"${String(content).trim().slice(0, 100)}"`,
-          `/${targetType}/${targetId}#comments`
+          `/${targetType}/${targetId}#comments`,
+          replierAvatar
         );
       }
     }

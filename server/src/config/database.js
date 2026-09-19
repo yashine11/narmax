@@ -181,6 +181,7 @@ export async function initSchema() {
       title TEXT NOT NULL,
       message TEXT,
       link TEXT,
+      avatar TEXT,
       is_read INTEGER DEFAULT 0,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -261,6 +262,16 @@ async function migrateCommentsAndWatch() {
       await db.exec('ALTER TABLE watch_history ADD COLUMN completed INTEGER NOT NULL DEFAULT 0');
     } catch (e) {
       console.warn('watch_history.completed migration skipped:', e.message);
+    }
+  }
+
+  const ncols = await db.prepare('PRAGMA table_info(notifications)').all();
+  const nnames = new Set(ncols.map((c) => c.name));
+  if (!nnames.has('avatar')) {
+    try {
+      await db.exec('ALTER TABLE notifications ADD COLUMN avatar TEXT');
+    } catch (e) {
+      console.warn('notifications.avatar migration skipped:', e.message);
     }
   }
 }
