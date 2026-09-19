@@ -6,6 +6,7 @@ import api from '../api/client.js';
 import MovieGridCard from '../components/MovieGridCard.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useProgress } from '../context/ProgressContext.jsx';
+import { usePreferences } from '../context/PreferencesContext.jsx';
 import { Fragment } from 'react';
 import AdSlot from '../components/AdSlot.jsx';
 
@@ -17,6 +18,8 @@ function mediaKey(item) {
 export default function Search() {
   const { user } = useAuth();
   const { getProgress } = useProgress();
+  const { cardStyle } = usePreferences() || {};
+  const isLandscape = cardStyle === 'backdrops';
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const q = String(params.get('q') || '').trim();
@@ -159,15 +162,23 @@ export default function Search() {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+        <div className={`grid gap-4 ${
+          isLandscape
+            ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'
+            : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6'
+        }`}>
           {Array.from({ length: 12 }).map((_, index) => (
-            <div key={index} className="aspect-[2/3] skeleton rounded-xl" />
+            <div key={index} className={`${isLandscape ? 'aspect-video' : 'aspect-[2/3]'} skeleton rounded-xl`} />
           ))}
         </div>
       ) : (
         <>
           {results.length > 0 ? (
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+            <div className={`grid gap-4 ${
+              isLandscape
+                ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'
+                : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6'
+            }`}>
               {results.map((item, index) => {
                 const mediaType = item?.media_type === 'tv' ? 'tv' : 'movie';
                 const progress = getProgress(item.id, mediaType);

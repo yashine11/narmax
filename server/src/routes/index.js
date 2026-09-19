@@ -99,6 +99,7 @@ router.get('/user/favorites', authenticate, userController.listFavorites);
 router.post('/user/favorites', authenticate, userController.addFavorite);
 router.delete('/user/favorites/:movieId', authenticate, userController.removeFavorite);
 router.get('/user/favorite-status', authenticate, userController.favoriteStatus);
+router.post('/user/kids-pin', authenticate, kidsController.setCode);
 
 router.get('/user/history', authenticate, historyController.list);
 router.post('/user/history', authenticate, historyController.add);

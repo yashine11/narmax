@@ -50,13 +50,13 @@ export async function exitKids(req, res) {
 }
 
 export async function setCode(req, res) {
-  const { code } = req.body;
+  const code = req.body.pin || req.body.code;
   if (!code || String(code).length < 4) {
-    return res.status(400).json({ message: 'Code must be at least 4 characters' });
+    return res.status(400).json({ message: 'Code/PIN must be at least 4 characters' });
   }
   const hash = await bcrypt.hash(String(code), 12);
   await setKidsCodeHash(hash);
-  return res.json({ ok: true });
+  return res.json({ ok: true, message: 'Kids PIN updated successfully' });
 }
 
 export async function kidsFeed(req, res) {

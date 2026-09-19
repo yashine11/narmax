@@ -6,6 +6,7 @@ import MovieGridCard from '../components/MovieGridCard.jsx';
 import CatalogFilters from '../components/CatalogFilters.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useProgress } from '../context/ProgressContext.jsx';
+import { usePreferences } from '../context/PreferencesContext.jsx';
 import { FILTER_ALL, buildLanguageOptions, buildYearOptions, createFilters } from '../lib/catalogFilters.js';
 
 const PAGE_SIZE = 20;
@@ -14,6 +15,8 @@ const LOAD_STEP = 10;
 export default function MoviesBrowsePage() {
   const { user } = useAuth();
   const { getProgress } = useProgress();
+  const { cardStyle } = usePreferences() || {};
+  const isLandscape = cardStyle === 'backdrops';
   const [genres, setGenres] = useState([]);
   const [results, setResults] = useState([]);
   const [filters, setFilters] = useState(() => createFilters());
@@ -197,14 +200,22 @@ export default function MoviesBrowsePage() {
 
         <div className="mt-8">
           {loading ? (
-            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3.5 lg:grid-cols-6 2xl:grid-cols-7">
+            <div className={`grid gap-3 sm:gap-4 ${
+              isLandscape
+                ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'
+                : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 2xl:grid-cols-7'
+            }`}>
               {Array.from({ length: 10 }).map((_, index) => (
-                <div key={index} className="aspect-[2/3] skeleton rounded-[1rem]" />
+                <div key={index} className={`${isLandscape ? 'aspect-video' : 'aspect-[2/3]'} skeleton rounded-[1rem]`} />
               ))}
             </div>
           ) : visibleResults.length > 0 ? (
             <>
-              <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3.5 lg:grid-cols-6 2xl:grid-cols-7">
+              <div className={`grid gap-3 sm:gap-4 ${
+                isLandscape
+                  ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'
+                  : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 2xl:grid-cols-7'
+              }`}>
                 {visibleResults.map((movie) => {
                   const progress = getProgress(movie.id, 'movie');
                   return (

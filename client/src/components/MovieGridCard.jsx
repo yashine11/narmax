@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
+import { usePreferences } from '../context/PreferencesContext.jsx';
 import toast from 'react-hot-toast';
 
 const previewCache = new Map();
@@ -86,10 +87,11 @@ export default function MovieGridCard({
   onToggleList,
   inList: inListProp,
   showListBtn: showListBtnProp,
-  layout = 'portrait',
+  layout,
   enablePreview = true,
 }) {
   const { user } = useAuth();
+  const { cardStyle } = usePreferences() || {};
   const [hovered, setHovered] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(false);
   const [trailerKey, setTrailerKey] = useState('');
@@ -105,7 +107,8 @@ export default function MovieGridCard({
   const controlsTimerRef = useRef(null);
   const previewTimerRef = useRef(null);
 
-  const isLandscape = layout === 'landscape';
+  const effectiveLayout = layout || (cardStyle === 'backdrops' || cardStyle === 'landscape' ? 'landscape' : 'portrait');
+  const isLandscape = effectiveLayout === 'landscape';
   const href = kind === 'tv' ? `/tv/${movie.id}` : `/movie/${movie.id}`;
   const watchHref = kind === 'tv' ? `/watch/${movie.id}?type=tv&season=1&episode=1` : `/watch/${movie.id}`;
   const score = Number.isFinite(movie.vote_average) ? movie.vote_average.toFixed(1) : null;
@@ -283,6 +286,15 @@ export default function MovieGridCard({
           <img src={isLandscape ? hoverImage : baseImage} alt="" className="h-full w-full object-cover" loading="lazy" />
         ) : (
           <div className="flex h-full w-full items-center justify-center p-3 text-center text-[10px] text-zinc-500">{movie.title}</div>
+        )}
+
+        {isLandscape && (
+          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-2.5 pt-6 pointer-events-none">
+            <p className="line-clamp-1 text-xs font-bold text-white drop-shadow">{movie.title || movie.name}</p>
+            {score && (
+              <span className="text-[10px] font-semibold text-narmax-cyan">{score} ★</span>
+            )}
+          </div>
         )}
         
         {completed && (

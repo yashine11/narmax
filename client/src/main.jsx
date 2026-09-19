@@ -7,6 +7,7 @@ import App from './App.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
 import { ProgressProvider } from './context/ProgressContext.jsx';
+import { PreferencesProvider } from './context/PreferencesContext.jsx';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -16,7 +17,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <BrowserRouter>
           <AuthProvider>
             <ProgressProvider>
-              <App />
+              <PreferencesProvider>
+                <App />
+              </PreferencesProvider>
             </ProgressProvider>
             <Toaster
               position="bottom-center"

@@ -7,11 +7,14 @@ import BrowseByProvider from '../components/BrowseByProvider.jsx';
 import SkeletonHome from '../components/SkeletonHome.jsx';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext.jsx';
+import { usePreferences } from '../context/PreferencesContext.jsx';
 import { Helmet } from 'react-helmet-async';
 import AdSlot from '../components/AdSlot.jsx';
 
 function ContinueWatchingRow({ items }) {
   const railRef = useRef(null);
+  const { cardStyle } = usePreferences() || {};
+  const isLandscape = cardStyle === 'backdrops';
 
   const scroll = (direction) => {
     if (!railRef.current) return;
@@ -61,7 +64,14 @@ function ContinueWatchingRow({ items }) {
           const progressPercent = Math.max(0, Math.min(100, Math.round(Number(item.progress_percent || 0))));
           const remainingPercent = Math.max(0, 100 - progressPercent);
           return (
-            <div key={`${mediaType}:${item.id}`} className="relative z-[1] w-[152px] shrink-0 snap-start transition-all hover:z-[99] sm:w-[176px] md:w-[192px]">
+            <div
+              key={`${mediaType}:${item.id}`}
+              className={`relative z-[1] shrink-0 snap-start transition-all hover:z-[99] ${
+                isLandscape
+                  ? 'w-[230px] sm:w-[270px] md:w-[310px]'
+                  : 'w-[152px] sm:w-[176px] md:w-[192px]'
+              }`}
+            >
               <MovieGridCard
                 movie={{ ...item, badges: ['Continue Watching'] }}
                 kind={mediaType}

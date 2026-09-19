@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import api from '../api/client.js';
-import SettingsDrawer from './SettingsDrawer.jsx';
 
 const NAV_LINKS = [
   { to: '/', label: 'Home', end: true },
@@ -48,7 +47,6 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [q, setQ] = useState('');
   const [suggest, setSuggest] = useState([]);
   const [activeSuggestion, setActiveSuggestion] = useState(-1);
@@ -390,20 +388,21 @@ export default function Navbar() {
 
             {/* Profile Avatar / Sign In (outside capsule) */}
             {user ? (
-              <button
-                type="button"
-                onClick={() => setSettingsOpen(true)}
-                className="group inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.05] px-1.5 py-1 transition hover:bg-white/[0.12]"
-                title="Settings & Profile"
+              <Link
+                to="/profile"
+                className="group inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.05] p-1 pr-3 transition hover:border-narmax-cyan hover:bg-white/[0.12]"
+                title="Profile & Settings"
               >
                 <img
                   src={user.avatar}
-                  alt=""
+                  alt={user.username}
                   className="h-7 w-7 rounded-full border border-white/15 object-cover"
                   loading="lazy"
                 />
-                <ChevronDownIcon className="h-3.5 w-3.5 text-zinc-300" />
-              </button>
+                <span className="text-xs font-semibold text-zinc-300 group-hover:text-white">
+                  {user.username}
+                </span>
+              </Link>
             ) : (
               <Link
                 to="/login"
@@ -486,14 +485,13 @@ export default function Navbar() {
 
             {/* Profile / Settings — Mobile */}
             {user ? (
-              <button
-                type="button"
-                onClick={() => setSettingsOpen(true)}
-                className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-white/15 bg-white/5 transition hover:bg-white/10"
-                title="Settings"
+              <Link
+                to="/profile"
+                className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-white/15 bg-white/5 transition hover:border-narmax-cyan hover:bg-white/10"
+                title="Profile & Settings"
               >
                 <img src={user.avatar} alt="" className="h-full w-full object-cover" loading="lazy" />
-              </button>
+              </Link>
             ) : (
               <Link
                 to="/login"
@@ -613,13 +611,13 @@ export default function Navbar() {
             {/* Footer */}
             <div className="p-4">
               {user ? (
-                <button
-                  type="button"
-                  onClick={() => { setMobileMenuOpen(false); setSettingsOpen(true); }}
-                  className="w-full rounded-xl border border-white/15 py-3 text-sm font-semibold text-zinc-300 transition hover:bg-white/5"
+                <Link
+                  to="/profile"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block w-full rounded-xl border border-white/15 py-3 text-center text-sm font-semibold text-zinc-300 transition hover:bg-white/5"
                 >
                   Settings &amp; Account
-                </button>
+                </Link>
               ) : (
                 <Link
                   to="/login"
@@ -634,8 +632,6 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* Settings Drawer */}
-      <SettingsDrawer open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </>
   );
 }

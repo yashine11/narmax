@@ -3,6 +3,7 @@ import api from '../api/client.js';
 import MovieGridCard from './MovieGridCard.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useProgress } from '../context/ProgressContext.jsx';
+import { usePreferences } from '../context/PreferencesContext.jsx';
 import toast from 'react-hot-toast';
 
 export default function PremiumScrollRow({
@@ -17,6 +18,8 @@ export default function PremiumScrollRow({
   const railRef = useRef(null);
   const { user } = useAuth();
   const { getProgress } = useProgress();
+  const { cardStyle } = usePreferences() || {};
+  const isLandscape = cardStyle === 'backdrops';
   const [favTmdb, setFavTmdb] = useState(new Set());
   const useExternalFavorites = favoriteIds instanceof Set;
   const resolvedFavorites = useExternalFavorites ? favoriteIds : favTmdb;
@@ -143,7 +146,14 @@ export default function PremiumScrollRow({
                 ? movie
                 : { ...movie, rank: index + 1, badges: baseBadges.slice(0, 2) };
             return (
-              <div key={`${movie.id}-${title}`} className="group/item relative z-[1] w-[152px] shrink-0 snap-start transition-all hover:z-[99] sm:w-[176px] md:w-[192px]">
+              <div
+                key={`${movie.id}-${title}`}
+                className={`group/item relative z-[1] shrink-0 snap-start transition-all hover:z-[99] ${
+                  isLandscape
+                    ? 'w-[230px] sm:w-[270px] md:w-[310px]'
+                    : 'w-[152px] sm:w-[176px] md:w-[192px]'
+                }`}
+              >
                 <MovieGridCard
                   movie={cardMovie}
                   kind={kind}
