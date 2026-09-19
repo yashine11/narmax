@@ -55,6 +55,7 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const searchRef = useRef(null);
+  const searchInputRef = useRef(null);
   const profileRef = useRef(null);
   const notificationRef = useRef(null);
   const navigate = useNavigate();
@@ -62,6 +63,25 @@ export default function Navbar() {
   const [notifications, setNotifications] = useState([]);
   const [notifOpen, setNotifOpen] = useState(false);
   const unreadCount = notifications.filter((n) => !n.is_read).length;
+
+  const closeSearch = () => {
+    setSearchOpen(false);
+    setQ('');
+    setSuggest([]);
+    setActiveSuggestion(-1);
+    searchInputRef.current?.blur();
+  };
+
+  const toggleSearch = () => {
+    if (!searchOpen) {
+      setSearchOpen(true);
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 250);
+    } else {
+      closeSearch();
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -80,11 +100,26 @@ export default function Navbar() {
     setMobileSearchOpen(false);
   }, [navigate]);
 
+  // ESC closes search
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape' && searchOpen) {
+        closeSearch();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [searchOpen]);
+
   useEffect(() => {
     const onClickOutside = (event) => {
       if (searchRef.current && !searchRef.current.contains(event.target)) {
-        setSuggest([]);
-        setActiveSuggestion(-1);
+        if (searchOpen) {
+          closeSearch();
+        } else {
+          setSuggest([]);
+          setActiveSuggestion(-1);
+        }
       }
       if (profileRef.current && !profileRef.current.contains(event.target)) {
         setProfileOpen(false);
@@ -95,7 +130,7 @@ export default function Navbar() {
     };
     window.addEventListener('pointerdown', onClickOutside);
     return () => window.removeEventListener('pointerdown', onClickOutside);
-  }, []);
+  }, [searchOpen]);
 
   const SECRET_ADMIN_TRIGGER = '@admin#riablo@Sphinx/portal';
 
@@ -165,17 +200,14 @@ export default function Navbar() {
     const query = (queryOverride || q).trim();
     if (!query) return;
     if (query === SECRET_ADMIN_TRIGGER) {
-      setQ('');
-      setSuggest([]);
-      setActiveSuggestion(-1);
+      closeSearch();
       setMobileSearchOpen(false);
       setMobileMenuOpen(false);
       navigate('/login?portal=riablo-sphinx');
       return;
     }
     navigate(`/search?q=${encodeURIComponent(query)}`);
-    setSuggest([]);
-    setActiveSuggestion(-1);
+    closeSearch();
     setMobileSearchOpen(false);
     setMobileMenuOpen(false);
   };
@@ -187,8 +219,7 @@ export default function Navbar() {
     } else {
       navigate(item.media_type === 'tv' ? `/tv/${item.id}` : `/movie/${item.id}`);
     }
-    setSuggest([]);
-    setActiveSuggestion(-1);
+    closeSearch();
     setMobileMenuOpen(false);
   };
 
@@ -233,67 +264,6 @@ export default function Navbar() {
 
           {/* Right: Cinejoy Floating Capsule Bar (Desktop) */}
           <div className="hidden items-center gap-3 md:flex">
-            {/* Expanded Search Input if open */}
-            {searchOpen && (
-              <div ref={searchRef} className="animate-fade-in relative w-64 lg:w-80">
-                <input
-                  autoFocus
-                  value={q}
-                  onChange={(event) => setQ(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Escape') {
-                      setSearchOpen(false);
-                    }
-                    if (event.key === 'Enter') {
-                      event.preventDefault();
-                      if (activeSuggestion >= 0 && suggest[activeSuggestion]) {
-                        selectSuggestion(suggest[activeSuggestion]);
-                      } else {
-                        goToSearch();
-                      }
-                    }
-                    if (event.key === 'ArrowDown') {
-                      event.preventDefault();
-                      setActiveSuggestion((current) => Math.min((suggest.length || 1) - 1, current + 1));
-                    }
-                    if (event.key === 'ArrowUp') {
-                      event.preventDefault();
-                      setActiveSuggestion((current) => Math.max(-1, current - 1));
-                    }
-                  }}
-                  placeholder="Search movies, shows..."
-                  className="w-full rounded-full border border-white/20 bg-zinc-900/95 px-4 py-2 text-sm text-white outline-none placeholder:text-zinc-400 focus:border-white focus:ring-1 focus:ring-white"
-                />
-                {suggest.length > 0 && (
-                  <ul className="absolute left-0 right-0 top-full z-[200] mt-2 max-h-72 overflow-auto rounded-2xl border border-white/15 bg-zinc-950/98 p-2 shadow-2xl backdrop-blur-xl">
-                    {suggest.map((item, index) => (
-                      <li key={`${item.media_type || 'movie'}-${item.id}`}>
-                        <button
-                          type="button"
-                          onClick={() => selectSuggestion(item)}
-                          className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm transition ${
-                            index === activeSuggestion ? 'bg-white/15' : 'hover:bg-white/10'
-                          }`}
-                        >
-                          {item.poster_path ? (
-                            <img src={item.poster_path} alt="" className="h-10 w-7 rounded object-cover" loading="lazy" />
-                          ) : (
-                            <div className="h-10 w-7 rounded bg-zinc-800" />
-                          )}
-                          <span className="flex min-w-0 flex-1 items-center justify-between gap-2">
-                            <span className="truncate font-medium text-zinc-100">{item.title}</span>
-                            <span className="rounded-full border border-white/15 px-2 py-0.5 text-[10px] font-bold uppercase text-zinc-400">
-                              {mediaBadgeLabel(item.media_type)}
-                            </span>
-                          </span>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            )}
-
             {/* Cinejoy Floating Capsule */}
             <div className="cine-capsule-bar">
               {NAV_LINKS.map((item) => (
@@ -369,21 +339,87 @@ export default function Navbar() {
                 </div>
               )}
 
-              {/* Search Toggle */}
-              <button
-                type="button"
-                onClick={() => setSearchOpen(!searchOpen)}
-                className={`flex h-8 w-8 items-center justify-center rounded-full transition ${
-                  searchOpen ? 'bg-white text-black' : 'text-zinc-400 hover:text-white'
-                }`}
-                title="Search"
-                aria-label="Search"
+              {/* Clean Expanding Search */}
+              <div
+                ref={searchRef}
+                className={`search ${searchOpen ? 'active' : ''}`}
+                id="search"
               >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <circle cx="11" cy="11" r="8" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35" />
-                </svg>
-              </button>
+                <input
+                  ref={searchInputRef}
+                  id="searchInput"
+                  type="search"
+                  value={q}
+                  onChange={(event) => setQ(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Escape') {
+                      event.preventDefault();
+                      closeSearch();
+                    }
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      if (activeSuggestion >= 0 && suggest[activeSuggestion]) {
+                        selectSuggestion(suggest[activeSuggestion]);
+                      } else {
+                        goToSearch();
+                      }
+                    }
+                    if (event.key === 'ArrowDown') {
+                      event.preventDefault();
+                      setActiveSuggestion((current) => Math.min((suggest.length || 1) - 1, current + 1));
+                    }
+                    if (event.key === 'ArrowUp') {
+                      event.preventDefault();
+                      setActiveSuggestion((current) => Math.max(-1, current - 1));
+                    }
+                  }}
+                  placeholder="Search..."
+                  autoComplete="off"
+                />
+
+                <button
+                  className="search-button"
+                  id="searchButton"
+                  type="button"
+                  aria-label={searchOpen ? 'Close search' : 'Open search'}
+                  onClick={toggleSearch}
+                >
+                  {/* Magnifying glass */}
+                  <span className="search-icon"></span>
+
+                  {/* Clean X */}
+                  <span className="close-icon"></span>
+                </button>
+
+                {/* Suggestions dropdown */}
+                {searchOpen && suggest.length > 0 && (
+                  <ul className="absolute right-0 top-full z-[200] mt-2.5 w-72 lg:w-80 max-h-72 overflow-auto rounded-2xl border border-white/15 bg-zinc-950/98 p-2 shadow-2xl backdrop-blur-xl">
+                    {suggest.map((item, index) => (
+                      <li key={`${item.media_type || 'movie'}-${item.id}`}>
+                        <button
+                          type="button"
+                          onClick={() => selectSuggestion(item)}
+                          className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm transition ${
+                            index === activeSuggestion ? 'bg-white/15' : 'hover:bg-white/10'
+                          }`}
+                        >
+                          {item.poster_path ? (
+                            <img src={item.poster_path} alt="" className="h-10 w-7 rounded object-cover" loading="lazy" />
+                          ) : (
+                            <div className="h-10 w-7 rounded bg-zinc-800" />
+                          )}
+                          <span className="flex min-w-0 flex-1 items-center justify-between gap-2">
+                            <span className="truncate font-medium text-zinc-100">{item.title}</span>
+                            <span className="rounded-full border border-white/15 px-2 py-0.5 text-[10px] font-bold uppercase text-zinc-400">
+                              {mediaBadgeLabel(item.media_type)}
+                            </span>
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
 
             {/* Profile Avatar / Sign In (outside capsule) */}
