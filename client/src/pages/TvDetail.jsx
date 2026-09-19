@@ -139,79 +139,151 @@ export default function TvDetail() {
   const seasons = show.seasons || [];
 
   return (
-    <div>
+    <div className="min-h-screen bg-[#09090b] text-white">
       <Helmet>
         <title>{`${show.title} — NARMAX`}</title>
         <meta name="description" content={show.overview ? show.overview.slice(0, 160) : `Watch ${show.title} on NARMAX`} />
       </Helmet>
-      <div
-        className="relative min-h-[48vh] flex items-end"
-        style={{
-          backgroundImage: show.backdrop_path ? `url(${show.backdrop_path})` : undefined,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center top',
-        }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/30" />
-        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-8 py-12 flex flex-col md:flex-row gap-8 w-full">
-          <div className="shrink-0 w-48 sm:w-56 mx-auto md:mx-0">
-            {show.poster_path ? (
-              <img src={show.poster_path} alt="" className="rounded-lg shadow-card w-full" loading="lazy" />
-            ) : (
-              <div className="aspect-[2/3] bg-zinc-800 rounded-lg" />
-            )}
-          </div>
-          <div className="flex-1 text-center md:text-left">
-            <h1 className="text-3xl sm:text-5xl font-black mb-2">{show.title}</h1>
-            <p className="text-zinc-200 font-semibold mb-2">
-              <span className="text-narmax-red">{show.vote_average?.toFixed(1)}</span>
-              <span className="text-zinc-500"> |</span> {show.release_date?.slice(0, 4)}
-              {show.number_of_seasons != null && (
-                <span className="text-zinc-400"> | {show.number_of_seasons} seasons</span>
-              )}
-            </p>
-            <p className="text-zinc-300 max-w-2xl mb-6">{show.overview}</p>
-            <div className="flex flex-wrap gap-3 justify-center md:justify-start">
-              <a
-                href="#episodes"
-                className="bg-narmax-red hover:bg-red-700 px-8 py-3 rounded font-bold transition shadow-lg shadow-red-900/20"
-              >
-                Browse episodes
-              </a>
-              <button
-                type="button"
-                onClick={toggleList}
-                className="bg-white/10 border border-white/30 px-8 py-3 rounded font-semibold hover:bg-white/20 transition"
-              >
-                {inList ? 'In My List' : 'Add to My List'}
-              </button>
-            </div>
-            {show.trailer?.youtube && (
-              <div className="mt-8 max-w-3xl">
-                <h3 className="font-bold mb-2">Trailer</h3>
-                <div className="aspect-video rounded-lg overflow-hidden border border-zinc-800">
-                  <iframe title="trailer" src={show.trailer.youtube} className="w-full h-full" allowFullScreen />
-                </div>
+
+      {/* Hero Banner */}
+      <div className="relative min-h-[60vh] lg:min-h-[70vh] flex items-end pb-12 pt-28 overflow-hidden">
+        {show.backdrop_path && (
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${show.backdrop_path})` }}
+          />
+        )}
+        <div className="cine-vignette-hero" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-[#09090b]/60 to-transparent" />
+
+        <div className="relative z-10 max-w-[1920px] mx-auto px-4 sm:px-8 w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-end">
+            {/* Left: Title, Metadata, Action Buttons */}
+            <div className="lg:col-span-2 space-y-4">
+              {/* Badges */}
+              <div className="flex flex-wrap items-center gap-2.5 text-xs font-bold">
+                <span className="bg-[#f5c518] text-black px-2.5 py-0.5 rounded font-black tracking-wider">
+                  IMDb {show.vote_average?.toFixed(1) || 'N/A'}
+                </span>
+                <span className="text-zinc-300 bg-white/10 px-2.5 py-0.5 rounded backdrop-blur">
+                  {show.release_date?.slice(0, 4) || show.first_air_date?.slice(0, 4) || 'TV'}
+                </span>
+                {show.number_of_seasons != null && (
+                  <span className="text-zinc-300 bg-white/10 px-2.5 py-0.5 rounded backdrop-blur">
+                    {show.number_of_seasons} Season{show.number_of_seasons > 1 ? 's' : ''}
+                  </span>
+                )}
+                <span className="border border-white/20 text-zinc-300 px-2 py-0.5 rounded text-[11px]">
+                  HD
+                </span>
               </div>
-            )}
+
+              {/* Title */}
+              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight drop-shadow-md">
+                {show.title}
+              </h1>
+
+              {/* Genres */}
+              {show.genres?.length > 0 && (
+                <p className="text-xs text-zinc-400 font-medium">
+                  {show.genres.map((g) => g.name).join(' • ')}
+                </p>
+              )}
+
+              {/* Overview */}
+              <p className="text-sm sm:text-base text-zinc-300 max-w-3xl line-clamp-3 leading-relaxed drop-shadow">
+                {show.overview}
+              </p>
+
+              {/* Actions */}
+              <div className="flex items-center gap-3 pt-2">
+                <Link
+                  to={`/watch/${id}?type=tv&season=${seasonNum}&episode=1`}
+                  className="cine-play-pill text-sm sm:text-base"
+                >
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                  Play S{seasonNum} E1
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={toggleList}
+                  className={`cine-icon-circle ${inList ? 'border-narmax-red text-narmax-red' : ''}`}
+                  title={inList ? 'Remove from My List' : 'Add to My List'}
+                >
+                  {inList ? (
+                    <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                      <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" />
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                      <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
+                    </svg>
+                  )}
+                </button>
+
+                <a
+                  href="#episodes"
+                  className="cine-icon-circle"
+                  title="Browse Episodes"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+
+            {/* Right: Cinejoy Series Information Card */}
+            <div className="bg-zinc-900/80 border border-white/10 rounded-2xl p-5 backdrop-blur-md space-y-3 text-xs">
+              <h3 className="text-sm font-extrabold text-white tracking-wide uppercase border-b border-white/10 pb-2">
+                Series Information
+              </h3>
+              <div className="grid grid-cols-2 gap-y-2 text-zinc-400">
+                <span className="font-semibold text-zinc-500">Status</span>
+                <span className="text-white font-medium">{show.status || 'Ongoing'}</span>
+
+                <span className="font-semibold text-zinc-500">Original Language</span>
+                <span className="text-white font-medium uppercase">{show.original_language || 'EN'}</span>
+
+                <span className="font-semibold text-zinc-500">First Aired</span>
+                <span className="text-white font-medium">{show.first_air_date || show.release_date || 'N/A'}</span>
+
+                <span className="font-semibold text-zinc-500">Total Seasons</span>
+                <span className="text-white font-medium">{show.number_of_seasons || seasons.length || 1}</span>
+
+                <span className="font-semibold text-zinc-500">Total Episodes</span>
+                <span className="text-white font-medium">{show.number_of_episodes || 'Multiple'}</span>
+
+                {show.networks?.length > 0 && (
+                  <>
+                    <span className="font-semibold text-zinc-500">Network</span>
+                    <span className="text-white font-medium">{show.networks.map((n) => n.name).join(', ')}</span>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
+      {/* Cast Section */}
       {show.cast?.length > 0 && (
-        <section className="max-w-6xl mx-auto px-4 sm:px-8 py-10 border-t border-zinc-900">
-          <h2 className="text-xl font-bold mb-4">Cast</h2>
+        <section className="max-w-[1920px] mx-auto px-4 sm:px-8 py-8 border-t border-white/5">
+          <h2 className="text-lg font-black text-white mb-4 tracking-tight">Top Cast</h2>
           <div className="flex gap-4 overflow-x-auto row-scroll pb-2">
             {show.cast.map((c) => (
-              <Link key={`${c.id}-${c.character}`} to={`/person/${c.id}`} className="shrink-0 w-28 text-center group">
-                <div className="aspect-[2/3] rounded-lg overflow-hidden bg-zinc-800 mb-2 ring-1 ring-white/10 group-hover:ring-narmax-red/60 transition">
+              <Link key={`${c.id}-${c.character}`} to={`/person/${c.id}`} className="shrink-0 w-24 sm:w-28 text-center group">
+                <div className="aspect-[2/3] rounded-xl overflow-hidden bg-zinc-800 mb-2 ring-1 ring-white/10 group-hover:ring-narmax-red transition">
                   {c.profile_path ? (
                     <img src={c.profile_path} alt="" className="w-full h-full object-cover" loading="lazy" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-zinc-600 text-xs">?</div>
                   )}
                 </div>
-                <p className="text-xs font-semibold line-clamp-2 group-hover:text-narmax-red transition">{c.name}</p>
+                <p className="text-xs font-semibold text-zinc-200 line-clamp-1 group-hover:text-narmax-red transition">{c.name}</p>
                 <p className="text-[10px] text-zinc-500 line-clamp-1">{c.character}</p>
               </Link>
             ))}
@@ -219,42 +291,26 @@ export default function TvDetail() {
         </section>
       )}
 
-      <section id="episodes" className="max-w-6xl mx-auto px-4 sm:px-8 py-10 border-t border-zinc-900 scroll-mt-24">
-        <h2 className="text-2xl font-black mb-2">Episodes</h2>
-        <p className="text-sm text-zinc-500 mb-6">Pick a season, then choose an episode to play.</p>
+      {/* Episodes Section */}
+      <section id="episodes" className="max-w-[1920px] mx-auto px-4 sm:px-8 py-8 border-t border-white/5 scroll-mt-24">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <h2 className="text-2xl font-black text-white tracking-tight">Episodes</h2>
+            <p className="text-xs text-zinc-400 mt-0.5">Select a season and tap an episode to start streaming</p>
+          </div>
 
-        {seasons.length === 0 ? (
-          <p className="text-zinc-500 text-sm">Season information is not available for this title.</p>
-        ) : (
-          <>
-            <div className="mb-4 sm:hidden">
-              <label htmlFor="season-select" className="sr-only">
-                Season
-              </label>
-              <select
-                id="season-select"
-                value={seasonNum}
-                onChange={(e) => setSeasonNum(Number(e.target.value))}
-                className="w-full max-w-md bg-zinc-900 border border-zinc-600 rounded-lg px-4 py-3 text-sm font-medium focus:border-narmax-red outline-none"
-              >
-                {seasons.map((s) => (
-                  <option key={s.season_number} value={s.season_number}>
-                    {s.name || `Season ${s.season_number}`}
-                    {s.episode_count != null ? ` | ${s.episode_count} eps` : ''}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="hidden sm:flex flex-wrap gap-2 mb-6">
+          {/* Season Pills */}
+          {seasons.length > 0 && (
+            <div className="flex flex-wrap gap-2">
               {seasons.map((s) => (
                 <button
                   key={s.season_number}
                   type="button"
                   onClick={() => setSeasonNum(s.season_number)}
-                  className={`px-4 py-2 rounded-lg text-sm font-semibold border transition shadow-sm ${
+                  className={`px-4 py-1.5 rounded-full text-xs font-semibold border transition ${
                     seasonNum === s.season_number
-                      ? 'bg-narmax-red border-narmax-red text-white shadow-red-900/25'
-                      : 'bg-zinc-900 border-zinc-700 text-zinc-300 hover:border-zinc-500 hover:bg-zinc-800'
+                      ? 'bg-narmax-red border-narmax-red text-white shadow-md shadow-red-900/40'
+                      : 'bg-zinc-900 border-white/10 text-zinc-300 hover:border-white/20 hover:text-white'
                   }`}
                 >
                   {s.name || `Season ${s.season_number}`}
@@ -262,44 +318,77 @@ export default function TvDetail() {
                 </button>
               ))}
             </div>
-            {epLoading ? (
-              <div className="space-y-3">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="h-20 skeleton rounded-lg" />
-                ))}
-              </div>
-            ) : (
-              <ul className="space-y-3">
-                {episodes.map((ep) => (
-                  <li
-                    key={ep.id}
-                    className="flex flex-col sm:flex-row gap-4 p-4 rounded-xl bg-zinc-900/80 border border-zinc-800 hover:border-zinc-600 transition shadow-sm hover:shadow-md"
-                  >
-                    <div className="shrink-0 w-full sm:w-40 aspect-video rounded-lg overflow-hidden bg-zinc-800 ring-1 ring-white/5">
-                      {ep.still_path ? (
-                        <img src={ep.still_path} alt="" className="w-full h-full object-cover" loading="lazy" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-zinc-600 text-sm">{ep.episode_number}</div>
-                      )}
+          )}
+        </div>
+
+        {seasons.length === 0 ? (
+          <p className="text-zinc-500 text-sm">Season information is not available for this title.</p>
+        ) : epLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="aspect-video skeleton rounded-xl" />
+            ))}
+          </div>
+        ) : (
+          /* 16:9 Landscape Episode Cards matching Cinejoy */
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {episodes.map((ep) => (
+              <Link
+                key={ep.id}
+                to={`/watch/${id}?type=tv&season=${seasonNum}&episode=${ep.episode_number}`}
+                className="group relative flex flex-col rounded-xl overflow-hidden bg-zinc-900/70 border border-white/10 hover:border-white/30 transition shadow hover:shadow-lg"
+              >
+                {/* 16:9 Thumbnail */}
+                <div className="relative aspect-video w-full overflow-hidden bg-zinc-800">
+                  {ep.still_path ? (
+                    <img
+                      src={ep.still_path}
+                      alt={ep.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-zinc-600 text-sm font-bold">
+                      Episode {ep.episode_number}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2 mb-1">
-                        <span className="text-xs font-bold text-narmax-red">E{ep.episode_number}</span>
-                        <h3 className="font-bold text-white">{ep.name}</h3>
-                      </div>
-                      <p className="text-sm text-zinc-400 line-clamp-3 mb-3">{ep.overview || 'No description.'}</p>
-                      <Link
-                        to={`/watch/${id}?type=tv&season=${seasonNum}&episode=${ep.episode_number}`}
-                        className="inline-flex items-center gap-2 text-sm font-bold text-white bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg border border-white/20 transition"
-                      >
-                        Play episode
-                      </Link>
+                  )}
+
+                  {/* Top-left Episode Badge */}
+                  <div className="absolute top-2.5 left-2.5 bg-black/75 backdrop-blur-sm text-white font-black text-[11px] px-2 py-0.5 rounded">
+                    {String(ep.episode_number).padStart(2, '0')}
+                  </div>
+
+                  {/* Bottom-right Runtime */}
+                  {ep.runtime && (
+                    <div className="absolute bottom-2.5 right-2.5 bg-black/75 backdrop-blur-sm text-zinc-300 font-semibold text-[10px] px-2 py-0.5 rounded">
+                      {ep.runtime}m
                     </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </>
+                  )}
+
+                  {/* Play Overlay on Hover */}
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
+                    <div className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center shadow-lg transform group-hover:scale-110 transition">
+                      <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 ml-0.5">
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Episode Details */}
+                <div className="p-3 flex-1 flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-xs sm:text-sm font-bold text-white group-hover:text-narmax-red transition line-clamp-1">
+                      {ep.episode_number}. {ep.name}
+                    </h3>
+                    <p className="text-[11px] text-zinc-400 line-clamp-2 mt-1">
+                      {ep.overview || 'No synopsis available.'}
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
         )}
       </section>
 

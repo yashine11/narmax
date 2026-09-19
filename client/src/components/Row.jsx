@@ -14,15 +14,15 @@ export default function Row({ title, movies, kind = 'movie' }) {
   };
 
   return (
-    <section className="mb-4 sm:mb-6">
-      <div className="mx-auto mb-4 flex max-w-[1920px] items-end justify-between gap-4 px-4 sm:px-8">
-        <h2 className="text-xl font-black tracking-tight text-white sm:text-2xl">{title}</h2>
-        <div className="flex gap-1.5">
+    <section className="mb-8 sm:mb-12">
+      <div className="mx-auto mb-4 flex max-w-[1920px] items-center justify-between gap-4 px-6 sm:px-12 md:px-16">
+        <h2 className="text-lg font-bold tracking-tight text-white sm:text-xl">{title}</h2>
+        <div className="flex items-center gap-2">
           <button
             type="button"
             aria-label="Scroll left"
             onClick={() => scroll(-1)}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-black/70 text-white transition hover:border-cyan-400/40 hover:bg-white/10"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-zinc-300 transition hover:bg-white/15 hover:text-white"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
@@ -32,7 +32,7 @@ export default function Row({ title, movies, kind = 'movie' }) {
             type="button"
             aria-label="Scroll right"
             onClick={() => scroll(1)}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-black/70 text-white transition hover:border-cyan-400/40 hover:bg-white/10"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-zinc-300 transition hover:bg-white/15 hover:text-white"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />

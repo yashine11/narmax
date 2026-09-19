@@ -119,7 +119,165 @@ html, body {
 
 /* ─── Responsive Typography ──────────────────── */
 .narmax-hero-title {
-  font-size: clamp(1.75rem, 5vw, 4rem);
+  font-size: clamp(2rem, 6vw, 4.5rem);
   font-weight: 900;
-  line-height: 1.1;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+/* ─── Cinejoy Modern UI System ───────────────── */
+.cine-capsule-bar {
+  background: rgba(18, 18, 22, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  border-radius: 9999px;
+  padding: 4px 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cine-capsule-item {
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #a1a1aa;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cine-capsule-item:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.cine-capsule-item-active {
+  background: #ffffff !important;
+  color: #000000 !important;
+  font-weight: 600;
+  box-shadow: 0 2px 10px rgba(255, 255, 255, 0.25);
+}
+
+.cine-play-pill {
+  background: #ffffff;
+  color: #000000;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 10px 24px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+.cine-play-pill:hover {
+  background: #e5e5e5;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.2);
+}
+
+.cine-play-pill:active {
+  transform: scale(0.97);
+}
+
+.cine-icon-circle {
+  width: 42px;
+  height: 42px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.cine-icon-circle:hover {
+  background: rgba(255, 255, 255, 0.24);
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.cine-icon-circle:active {
+  transform: scale(0.94);
+}
+
+.cine-filter-pill {
+  background: rgba(24, 24, 27, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px);
+  border-radius: 9999px;
+  padding: 6px 14px;
+  font-size: 0.825rem;
+  font-weight: 500;
+  color: #d4d4d8;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.cine-filter-pill:hover {
+  background: rgba(39, 39, 42, 0.95);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+}
+
+.cine-provider-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.2s ease;
+  cursor: pointer;
+}
+
+.cine-provider-badge:hover {
+  transform: translateY(-3px);
+}
+
+.cine-provider-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 16px;
+  background: rgba(24, 24, 27, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.cine-provider-badge:hover .cine-provider-icon {
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 6px 20px rgba(229, 9, 20, 0.3);
+}
+
+.cine-vignette-hero {
+  background: linear-gradient(
+    to bottom,
+    rgba(9, 9, 11, 0.15) 0%,
+    rgba(9, 9, 11, 0.4) 50%,
+    rgba(9, 9, 11, 0.85) 80%,
+    #09090b 100%
+  ),
+  linear-gradient(
+    to right,
+    rgba(9, 9, 11, 0.95) 0%,
+    rgba(9, 9, 11, 0.6) 40%,
+    rgba(9, 9, 11, 0.1) 75%,
+    transparent 100%
+  );
 }

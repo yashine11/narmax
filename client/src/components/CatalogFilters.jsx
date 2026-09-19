@@ -1,22 +1,31 @@
 import { useState } from 'react';
 import { FILTER_ALL, RATING_OPTIONS, SPECIAL_OPTIONS } from '../lib/catalogFilters.js';
 
-function FilterSelect({ label, value, options, onChange }) {
+function CineFilterPill({ label, value, options, onChange }) {
+  const selectedOption = options.find((opt) => String(opt.value) === String(value));
+  const isFiltered = value !== FILTER_ALL;
+
   return (
-    <label className="flex min-w-0 flex-1 basis-[calc(50%-0.5rem)] flex-col gap-1.5 sm:basis-[170px]">
-      <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-zinc-400">{label}</span>
+    <div className="relative inline-flex items-center">
       <select
         value={value}
         onChange={onChange}
-        className="w-full rounded-xl border border-cyan-300/20 bg-[#03045e]/45 px-3 py-2.5 text-sm font-medium text-cyan-100 outline-none transition hover:border-cyan-300/35 focus:border-narmax-cyan focus:bg-[#1e40af]/45"
+        className={`appearance-none cursor-pointer rounded-full px-4 py-2 pr-8 text-xs font-semibold tracking-wide transition border outline-none ${
+          isFiltered
+            ? 'bg-narmax-red/20 border-narmax-red text-white'
+            : 'bg-zinc-900/90 border-white/15 text-zinc-300 hover:border-white/30 hover:text-white'
+        }`}
       >
         {options.map((option) => (
-          <option key={option.value} value={option.value} className="bg-zinc-900 text-white">
+          <option key={option.value} value={option.value} className="bg-zinc-900 text-white py-1">
             {option.label}
           </option>
         ))}
       </select>
-    </label>
+      <div className="pointer-events-none absolute right-3 flex items-center text-zinc-400 text-[10px]">
+        ▼
+      </div>
+    </div>
   );
 }
 
@@ -32,7 +41,7 @@ export default function CatalogFilters({
   const [expanded, setExpanded] = useState(false);
 
   const genreOptions = [
-    { value: FILTER_ALL, label: 'Any genre' },
+    { value: FILTER_ALL, label: 'All Genres' },
     ...(genres || []).map((genre) => ({ value: String(genre.id), label: genre.name })),
   ];
 
@@ -45,72 +54,80 @@ export default function CatalogFilters({
   ].filter(Boolean).length;
 
   return (
-    <div className="glass-panel cyan-glow rounded-2xl p-4 sm:p-5">
-      {/* Header + mobile toggle */}
-      <div className="mb-1 flex items-center justify-between gap-4 sm:mb-4">
-        <div className="flex items-center gap-3">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-cyan-200">{title}</p>
-            <p className="mt-1 hidden text-sm text-zinc-300 sm:block">Advanced filtering with instant cinematic updates.</p>
-          </div>
-          {activeFilterCount > 0 && (
-            <span className="rounded-full bg-narmax-cyan px-2.5 py-0.5 text-[10px] font-black text-black">
-              {activeFilterCount}
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="rounded-full border border-cyan-300/25 bg-[#03045e]/45 px-3 py-1.5 text-xs font-semibold text-cyan-100 whitespace-nowrap">
+    <div className="w-full">
+      {/* Mobile Bar */}
+      <div className="flex items-center justify-between gap-3 sm:hidden mb-3">
+        <button
+          type="button"
+          onClick={() => setExpanded(!expanded)}
+          className="flex items-center gap-2 rounded-full border border-white/15 bg-zinc-900/90 px-4 py-2 text-xs font-semibold text-white hover:bg-zinc-800 transition"
+        >
+          <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4 text-narmax-red">
+            <path fillRule="evenodd" d="M2.628 1.601C5.028 1.206 7.49 1 10 1s4.973.206 7.372.601a.75.75 0 0 1 .628.74v2.288a2.25 2.25 0 0 1-.659 1.59l-4.682 4.683a2.25 2.25 0 0 0-.659 1.59v3.037c0 .684-.31 1.33-.844 1.757l-1.937 1.55A.75.75 0 0 1 8 18.25v-5.757a2.25 2.25 0 0 0-.659-1.591L2.659 6.22A2.25 2.25 0 0 1 2 4.629V2.34a.75.75 0 0 1 .628-.74Z" clipRule="evenodd" />
+          </svg>
+          Filters {activeFilterCount > 0 && `(${activeFilterCount})`} {expanded ? '▲' : '▼'}
+        </button>
+        {typeof count === 'number' && (
+          <span className="text-xs text-zinc-400 font-medium">
             {count} titles
-          </div>
-          {/* Mobile expand toggle */}
-          <button
-            type="button"
-            onClick={() => setExpanded(!expanded)}
-            className="flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs font-bold text-zinc-300 transition hover:bg-white/10 sm:hidden"
-          >
-            <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
-              <path fillRule="evenodd" d="M2.628 1.601C5.028 1.206 7.49 1 10 1s4.973.206 7.372.601a.75.75 0 0 1 .628.74v2.288a2.25 2.25 0 0 1-.659 1.59l-4.682 4.683a2.25 2.25 0 0 0-.659 1.59v3.037c0 .684-.31 1.33-.844 1.757l-1.937 1.55A.75.75 0 0 1 8 18.25v-5.757a2.25 2.25 0 0 0-.659-1.591L2.659 6.22A2.25 2.25 0 0 1 2 4.629V2.34a.75.75 0 0 1 .628-.74Z" clipRule="evenodd" />
-            </svg>
-            Filters {expanded ? '▲' : '▼'}
-          </button>
-        </div>
+          </span>
+        )}
       </div>
 
-      {/* Filters — always visible on sm+, toggleable on mobile */}
-      <div className={`${expanded ? 'block' : 'hidden'} sm:block`}>
-        <div className="flex flex-wrap gap-3">
-          <FilterSelect
-            label="Genre"
-            value={filters.genre}
-            options={genreOptions}
-            onChange={(event) => onChange('genre', event.target.value)}
-          />
-          <FilterSelect
-            label="Year"
-            value={filters.year}
-            options={yearOptions}
-            onChange={(event) => onChange('year', event.target.value)}
-          />
-          <FilterSelect
-            label="Rating"
-            value={filters.rating}
-            options={RATING_OPTIONS}
-            onChange={(event) => onChange('rating', event.target.value)}
-          />
-          <FilterSelect
-            label="Language"
-            value={filters.language}
-            options={languageOptions}
-            onChange={(event) => onChange('language', event.target.value)}
-          />
-          <FilterSelect
-            label="Collection"
-            value={filters.special}
-            options={SPECIAL_OPTIONS}
-            onChange={(event) => onChange('special', event.target.value)}
-          />
-        </div>
+      {/* Pill Row — Desktop always, Mobile toggled */}
+      <div className={`${expanded ? 'flex' : 'hidden'} sm:flex flex-wrap items-center gap-2.5`}>
+        <CineFilterPill
+          label="Genre"
+          value={filters.genre}
+          options={genreOptions}
+          onChange={(e) => onChange('genre', e.target.value)}
+        />
+        <CineFilterPill
+          label="Year"
+          value={filters.year}
+          options={yearOptions}
+          onChange={(e) => onChange('year', e.target.value)}
+        />
+        <CineFilterPill
+          label="Rating"
+          value={filters.rating}
+          options={RATING_OPTIONS}
+          onChange={(e) => onChange('rating', e.target.value)}
+        />
+        <CineFilterPill
+          label="Language"
+          value={filters.language}
+          options={languageOptions}
+          onChange={(e) => onChange('language', e.target.value)}
+        />
+        <CineFilterPill
+          label="Collection"
+          value={filters.special}
+          options={SPECIAL_OPTIONS}
+          onChange={(e) => onChange('special', e.target.value)}
+        />
+
+        {activeFilterCount > 0 && (
+          <button
+            type="button"
+            onClick={() => {
+              onChange('genre', FILTER_ALL);
+              onChange('year', FILTER_ALL);
+              onChange('rating', FILTER_ALL);
+              onChange('language', FILTER_ALL);
+              onChange('special', FILTER_ALL);
+            }}
+            className="rounded-full border border-white/10 bg-white/5 px-3.5 py-2 text-xs font-semibold text-zinc-400 hover:text-white hover:bg-white/10 transition"
+          >
+            Reset
+          </button>
+        )}
+
+        {typeof count === 'number' && (
+          <span className="hidden sm:inline-block ml-auto text-xs text-zinc-400 font-medium tracking-wide">
+            {count} titles
+          </span>
+        )}
       </div>
     </div>
   );

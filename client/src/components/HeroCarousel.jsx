@@ -119,9 +119,13 @@ export default function HeroCarousel() {
 
   if (!slide) return null;
 
+  const year = String(slide.release_date || '').slice(0, 4);
+  const rating = slide.vote_average ? Number(slide.vote_average).toFixed(1) : null;
+
   return (
-    <section className="relative h-[50vh] min-h-[340px] w-full overflow-hidden bg-black sm:h-[74vh] sm:min-h-[460px]">
-      <div className={`absolute inset-0 transition-opacity duration-500 ${transitioning ? 'opacity-70' : 'opacity-100'}`}>
+    <section className="relative min-h-[600px] w-full overflow-hidden bg-[#09090b] sm:h-[82vh] sm:min-h-[580px]">
+      {/* Background Backdrop */}
+      <div className={`absolute inset-0 transition-opacity duration-700 ${transitioning ? 'opacity-50' : 'opacity-100'}`}>
         {slide.trailer_embed_bg ? (
           <div className="pointer-events-none absolute inset-0 overflow-hidden">
             <iframe
@@ -133,79 +137,107 @@ export default function HeroCarousel() {
             />
           </div>
         ) : (
-          <img src={slide.backdrop_path} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          <img
+            src={slide.backdrop_path}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover object-top"
+          />
         )}
       </div>
 
-      <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/45 to-black/22" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(86,207,225,0.14),transparent_34%),radial-gradient(circle_at_88%_12%,rgba(30,64,175,0.18),transparent_28%)]" />
+      {/* Cinejoy Cinematic Vignette Overlays */}
+      <div className="cine-vignette-hero pointer-events-none absolute inset-0" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#09090b] via-[#09090b]/80 to-transparent" />
 
-      <div className="relative z-10 mx-auto flex h-full max-w-[1920px] flex-col justify-end px-4 pb-10 sm:px-12 sm:pb-18">
-        <div className="max-w-3xl animate-rise-fade">
-          <p className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/[0.08] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-200">
-            <span className="h-1.5 w-1.5 rounded-full bg-narmax-cyan" />
-            {subtitle}
-          </p>
-          <h1 className="mt-3 text-2xl font-black leading-tight drop-shadow-[0_12px_42px_rgba(0,0,0,0.72)] sm:mt-4 sm:text-4xl lg:text-6xl">
+      {/* Content Container */}
+      <div className="relative z-10 mx-auto flex h-full max-w-[1920px] flex-col justify-end px-6 pb-12 sm:px-12 sm:pb-16 md:px-16">
+        <div className="max-w-2xl animate-rise-fade">
+          {/* Main Title */}
+          <h1 className="text-3xl font-black uppercase tracking-tight text-white drop-shadow-[0_8px_30px_rgba(0,0,0,0.9)] sm:text-5xl lg:text-6xl">
             {slide.title}
           </h1>
-          <p className="mt-3 hidden max-w-2xl text-sm leading-relaxed text-zinc-200 sm:block sm:text-lg">{slide.overview}</p>
 
-          <div className="mt-5 flex flex-wrap items-center gap-2 sm:mt-7 sm:gap-3">
-            <Link
-              to={`/watch/${slide.id}`}
-              className="inline-flex min-h-[44px] items-center gap-2 rounded-md bg-cyan-100 px-5 py-2.5 text-sm font-bold text-[#041230] shadow-[0_12px_30px_rgba(86,207,225,0.28)] transition hover:scale-[1.02] hover:bg-white sm:px-8 sm:py-3 sm:text-base"
-            >
-              ▶ Play
-            </Link>
-            <Link
-              to={`/movie/${slide.id}`}
-              className="inline-flex min-h-[44px] items-center gap-2 rounded-md border border-cyan-300/30 bg-[#03045e]/55 px-5 py-2.5 text-sm font-semibold text-cyan-100 transition hover:bg-[#1e40af]/55 sm:px-8 sm:py-3"
-            >
-              More Info
-            </Link>
-            {slide.vote_average != null && (
-              <span className="hidden rounded-full border border-white/15 bg-black/35 px-3 py-1 text-xs font-semibold text-zinc-200 sm:inline">
-                Rating {slide.vote_average.toFixed(1)}
+          {/* Meta Details Row */}
+          <div className="mt-3 flex flex-wrap items-center gap-3 text-xs font-semibold sm:text-sm">
+            {rating && (
+              <span className="flex items-center gap-1 text-white">
+                <span className="text-amber-400">★</span> {rating}/10
               </span>
             )}
+            {year && (
+              <span className="text-zinc-400">
+                • {year}
+              </span>
+            )}
+            <span className="rounded bg-white/15 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-zinc-200">
+              HD
+            </span>
+          </div>
+
+          {/* Overview Description */}
+          {slide.overview && (
+            <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-zinc-300 drop-shadow sm:line-clamp-4 sm:text-base">
+              {slide.overview}
+            </p>
+          )}
+
+          {/* Action Buttons: ▶ Play (Pill), + (Circle), ⓘ (Circle) */}
+          <div className="mt-6 flex items-center gap-3">
+            <Link
+              to={`/watch/${slide.id}`}
+              className="cine-play-pill"
+            >
+              <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+              Play
+            </Link>
+
+            <Link
+              to={`/my-list`}
+              className="cine-icon-circle"
+              title="Add to My List"
+              aria-label="Add to List"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+            </Link>
+
+            <Link
+              to={`/movie/${slide.id}`}
+              className="cine-icon-circle"
+              title="More Details"
+              aria-label="More Details"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 16v-4m0-4h.01" />
+              </svg>
+            </Link>
           </div>
         </div>
 
+        {/* Bottom-Right Pagination Dots Indicator */}
         {slides.length > 1 && (
-          <>
-            <div className="absolute bottom-8 right-4 flex gap-2 sm:bottom-10 sm:right-12">
-              <button type="button" aria-label="Previous slide" onClick={() => go(-1)}
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/55 text-white transition hover:bg-white/10 hover:border-cyan-400/40">
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <button type="button" aria-label="Next slide" onClick={() => go(1)}
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/55 text-white transition hover:bg-white/10 hover:border-cyan-400/40">
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            </div>
-            <div className="mt-8 flex gap-1">
-              {slides.map((_, index) => (
-                <button
-                  key={index}
-                  type="button"
-                  aria-label={`Slide ${index + 1}`}
-                  onClick={() => {
-                    setTransitioning(true);
-                    setActive(index);
-                  }}
-                  className={`h-1 rounded-full transition-all ${
-                    index === active ? 'w-9 bg-narmax-red' : 'w-2 bg-zinc-500 hover:bg-zinc-400'
-                  }`}
-                />
-              ))}
-            </div>
-          </>
+          <div className="absolute bottom-8 right-6 flex items-center gap-1.5 sm:bottom-12 sm:right-12">
+            {slides.map((_, index) => (
+              <button
+                key={index}
+                type="button"
+                aria-label={`Go to slide ${index + 1}`}
+                onClick={() => {
+                  setTransitioning(true);
+                  setActive(index);
+                }}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  index === active
+                    ? 'w-6 bg-white'
+                    : 'w-2 bg-white/30 hover:bg-white/60'
+                }`}
+              />
+            ))}
+          </div>
         )}
       </div>
     </section>

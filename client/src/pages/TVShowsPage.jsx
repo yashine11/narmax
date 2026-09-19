@@ -187,20 +187,18 @@ export default function TVShowsPage() {
         <meta name="description" content="Watch trending, popular, and top rated TV series on NARMAX." />
       </Helmet>
       <div className="mx-auto max-w-[1920px] px-4 sm:px-8">
-        <div className="mb-8 sm:mb-10">
-          <p className="text-xs font-bold uppercase tracking-[0.24em] text-cyan-200">Series</p>
-          <h1 className="mt-2 text-3xl sm:text-5xl font-black text-white tracking-tight">TV Shows</h1>
+        <div className="mb-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">TV Shows</h1>
+          <CatalogFilters
+            title="TV filters"
+            genres={genres}
+            filters={filters}
+            onChange={handleFilterChange}
+            yearOptions={yearOptions}
+            languageOptions={resolvedLanguageOptions}
+            count={totalResults || visibleResults.length}
+          />
         </div>
-
-        <CatalogFilters
-          title="TV filters"
-          genres={genres}
-          filters={filters}
-          onChange={handleFilterChange}
-          yearOptions={yearOptions}
-          languageOptions={resolvedLanguageOptions}
-          count={totalResults || visibleResults.length}
-        />
 
         <div className="mt-8">
           {loading ? (

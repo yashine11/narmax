@@ -3,6 +3,7 @@ import api from '../api/client.js';
 import HeroCarousel from '../components/HeroCarousel.jsx';
 import MovieGridCard from '../components/MovieGridCard.jsx';
 import Row from '../components/Row.jsx';
+import BrowseByProvider from '../components/BrowseByProvider.jsx';
 import SkeletonHome from '../components/SkeletonHome.jsx';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -155,6 +156,10 @@ export default function Home() {
         </div>
 
         {hasContinueWatching && <ContinueWatchingRow items={continueWatching} />}
+        
+        {/* Cinejoy Browse by Provider Row */}
+        <BrowseByProvider />
+
         <Row title="Trending Now" movies={data.trending} large />
         <Row title="Editor's Radar" movies={data.popular} />
         

@@ -1,16 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import api from '../api/client.js';
 
 const NAV_LINKS = [
   { to: '/', label: 'Home', end: true },
-  { to: '/tv', label: 'TV Shows' },
   { to: '/movies', label: 'Movies' },
+  { to: '/tv', label: 'Shows' },
+  { to: '/my-list', label: 'My List' },
+];
+
+const MORE_LINKS = [
   { to: '/anime', label: 'Anime' },
   { to: '/popular', label: 'Popular' },
   { to: '/news', label: 'News' },
-  { to: '/my-list', label: 'My List' },
+  { to: '/kids', label: 'Kids' },
 ];
 
 function mediaBadgeLabel(type) {
@@ -41,11 +45,13 @@ function HamburgerIcon({ open }) {
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [q, setQ] = useState('');
   const [suggest, setSuggest] = useState([]);
   const [activeSuggestion, setActiveSuggestion] = useState(-1);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const searchRef = useRef(null);
@@ -197,91 +203,153 @@ export default function Navbar() {
       >
         <div className="mx-auto flex h-16 max-w-[1920px] items-center gap-3 px-4 sm:h-20 sm:gap-6 sm:px-8">
           {/* Logo */}
-          <Link
-            to="/"
-            className="shrink-0 bg-gradient-to-r from-white via-narmax-cyan to-white bg-clip-text text-xl font-black tracking-tight text-transparent sm:text-2xl"
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            NARMAX
-          </Link>
-
-          {/* Desktop Nav */}
-          <nav className="hidden items-center gap-5 lg:flex">
-            {NAV_LINKS.map((item) => (
-              <NavLink key={item.to} to={item.to} className={linkClass} end={item.end}>
-                {item.label}
-              </NavLink>
-            ))}
-            {user?.role === 'admin' && (
-              <NavLink to="/admin" className={linkClass}>Admin</NavLink>
+          {/* Left: Back button (if on subpage) + Brand Logo */}
+          <div className="flex items-center gap-2">
+            {location.pathname !== '/' && (
+              <button
+                type="button"
+                onClick={() => navigate(-1)}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 active:scale-95"
+                title="Go back"
+                aria-label="Go back"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
             )}
-          </nav>
 
-          {/* Right Side */}
-          <div className="flex flex-1 items-center justify-end gap-2 sm:gap-3">
-            {/* Desktop Search */}
-            <div ref={searchRef} className="relative hidden w-full max-w-sm sm:block">
-              <input
-                value={q}
-                onChange={(event) => setQ(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') {
-                    event.preventDefault();
-                    if (activeSuggestion >= 0 && suggest[activeSuggestion]) {
-                      selectSuggestion(suggest[activeSuggestion]);
-                    } else {
-                      goToSearch();
+            <Link
+              to="/"
+              className="shrink-0 text-xl font-black tracking-wider text-white transition hover:opacity-90 sm:text-2xl"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              NAR<span className="text-[#e50914]">MAX</span>
+            </Link>
+          </div>
+
+          {/* Spacer */}
+          <div className="flex-1" />
+
+          {/* Right: Cinejoy Floating Capsule Bar (Desktop) */}
+          <div className="hidden items-center gap-3 md:flex">
+            {/* Expanded Search Input if open */}
+            {searchOpen && (
+              <div ref={searchRef} className="animate-fade-in relative w-64 lg:w-80">
+                <input
+                  autoFocus
+                  value={q}
+                  onChange={(event) => setQ(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Escape') {
+                      setSearchOpen(false);
                     }
-                  }
-                  if (event.key === 'ArrowDown') {
-                    event.preventDefault();
-                    setActiveSuggestion((current) => Math.min((suggest.length || 1) - 1, current + 1));
-                  }
-                  if (event.key === 'ArrowUp') {
-                    event.preventDefault();
-                    setActiveSuggestion((current) => Math.max(-1, current - 1));
-                  }
-                }}
-                placeholder="Search titles, cast, genres..."
-                className="w-full rounded-xl border border-white/15 bg-white/[0.06] px-3.5 py-2 text-sm text-white outline-none transition placeholder:text-zinc-400 focus:border-narmax-cyan focus:bg-white/[0.1] focus:shadow-[0_0_0_1px_rgba(86,207,225,0.35)]"
-              />
-              {suggest.length > 0 && (
-                <ul className="absolute left-0 right-0 top-full z-[200] mt-2 max-h-72 overflow-auto rounded-2xl border border-white/15 bg-zinc-950/95 p-2 shadow-[0_20px_60px_rgba(0,0,0,0.75)] backdrop-blur-xl">
-                  {suggest.map((item, index) => (
-                    <li key={`${item.media_type || 'movie'}-${item.id}`}>
-                      <button
-                        type="button"
-                        onClick={() => selectSuggestion(item)}
-                        className={`flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-left text-sm transition ${
-                          index === activeSuggestion ? 'bg-white/10' : 'hover:bg-white/6'
-                        }`}
-                      >
-                        {item.poster_path ? (
-                          <img src={item.poster_path} alt="" className="h-11 w-8 rounded object-cover" loading="lazy" />
-                        ) : (
-                          <div className="h-11 w-8 rounded bg-zinc-800" />
-                        )}
-                        <span className="flex min-w-0 flex-1 items-center justify-between gap-2">
-                          <span className="truncate font-medium text-zinc-100">{item.title}</span>
-                          <span className="rounded-full border border-white/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-zinc-300">
-                            {mediaBadgeLabel(item.media_type)}
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      if (activeSuggestion >= 0 && suggest[activeSuggestion]) {
+                        selectSuggestion(suggest[activeSuggestion]);
+                      } else {
+                        goToSearch();
+                      }
+                    }
+                    if (event.key === 'ArrowDown') {
+                      event.preventDefault();
+                      setActiveSuggestion((current) => Math.min((suggest.length || 1) - 1, current + 1));
+                    }
+                    if (event.key === 'ArrowUp') {
+                      event.preventDefault();
+                      setActiveSuggestion((current) => Math.max(-1, current - 1));
+                    }
+                  }}
+                  placeholder="Search movies, shows..."
+                  className="w-full rounded-full border border-white/20 bg-zinc-900/95 px-4 py-2 text-sm text-white outline-none placeholder:text-zinc-400 focus:border-white focus:ring-1 focus:ring-white"
+                />
+                {suggest.length > 0 && (
+                  <ul className="absolute left-0 right-0 top-full z-[200] mt-2 max-h-72 overflow-auto rounded-2xl border border-white/15 bg-zinc-950/98 p-2 shadow-2xl backdrop-blur-xl">
+                    {suggest.map((item, index) => (
+                      <li key={`${item.media_type || 'movie'}-${item.id}`}>
+                        <button
+                          type="button"
+                          onClick={() => selectSuggestion(item)}
+                          className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm transition ${
+                            index === activeSuggestion ? 'bg-white/15' : 'hover:bg-white/10'
+                          }`}
+                        >
+                          {item.poster_path ? (
+                            <img src={item.poster_path} alt="" className="h-10 w-7 rounded object-cover" loading="lazy" />
+                          ) : (
+                            <div className="h-10 w-7 rounded bg-zinc-800" />
+                          )}
+                          <span className="flex min-w-0 flex-1 items-center justify-between gap-2">
+                            <span className="truncate font-medium text-zinc-100">{item.title}</span>
+                            <span className="rounded-full border border-white/15 px-2 py-0.5 text-[10px] font-bold uppercase text-zinc-400">
+                              {mediaBadgeLabel(item.media_type)}
+                            </span>
                           </span>
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
 
-            {/* Mobile search button */}
+            {/* Cinejoy Floating Capsule */}
+            <div className="cine-capsule-bar">
+              {NAV_LINKS.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.end}
+                  className={({ isActive }) =>
+                    `cine-capsule-item ${isActive ? 'cine-capsule-item-active' : ''}`
+                  }
+                >
+                  {item.label}
+                </NavLink>
+              ))}
+
+              {/* Search Toggle Icon */}
+              <button
+                type="button"
+                onClick={() => setSearchOpen(!searchOpen)}
+                className={`flex h-8 w-8 items-center justify-center rounded-full transition ${
+                  searchOpen ? 'bg-white text-black' : 'text-zinc-400 hover:text-white'
+                }`}
+                title="Search"
+                aria-label="Search"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <circle cx="11" cy="11" r="8" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35" />
+                </svg>
+              </button>
+
+              {/* Settings / Profile Icon */}
+              <button
+                type="button"
+                onClick={() => setProfileOpen((prev) => !prev)}
+                className="flex h-8 w-8 items-center justify-center rounded-full text-zinc-400 transition hover:text-white"
+                title="Settings & Profile"
+                aria-label="Settings"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          {/* Right Controls: Mobile & Actions */}
+          <div className="flex items-center gap-2 md:hidden">
             <button
               type="button"
               onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 transition hover:bg-white/10 sm:hidden"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-zinc-300 transition hover:bg-white/10"
               aria-label="Search"
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4 text-zinc-300">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
                 <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
               </svg>
             </button>
@@ -448,7 +516,7 @@ export default function Navbar() {
 
       {/* Mobile Drawer Overlay */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-[100] lg:hidden" aria-modal="true">
+        <div className="fixed inset-0 z-[100] md:hidden" aria-modal="true">
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/75 backdrop-blur-sm"
@@ -458,8 +526,8 @@ export default function Navbar() {
           <div className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-zinc-950 shadow-[4px_0_30px_rgba(0,0,0,0.8)]">
             {/* Drawer header */}
             <div className="flex h-16 items-center justify-between px-5">
-              <span className="bg-gradient-to-r from-white via-narmax-cyan to-white bg-clip-text text-xl font-black tracking-tight text-transparent">
-                NARMAX
+              <span className="text-xl font-black tracking-tight text-white">
+                NAR<span className="text-narmax-red">MAX</span>
               </span>
               <button
                 type="button"
@@ -482,6 +550,16 @@ export default function Navbar() {
                   to={item.to}
                   className={mobileLinkClass}
                   end={item.end}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {item.label}
+                </NavLink>
+              ))}
+              {MORE_LINKS.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={mobileLinkClass}
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {item.label}

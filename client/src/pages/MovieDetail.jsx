@@ -120,58 +120,114 @@ export default function MovieDetail() {
   };
 
   return (
-    <div>
+    <div className="min-h-screen bg-[#09090b] text-white">
       <Helmet>
         <title>{`${movie.title} — NARMAX`}</title>
         <meta name="description" content={movie.overview ? movie.overview.slice(0, 160) : `Watch ${movie.title} on NARMAX`} />
       </Helmet>
-      <div
-        className="relative min-h-[48vh] flex items-end"
-        style={{
-          backgroundImage: movie.backdrop_path ? `url(${movie.backdrop_path})` : undefined,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center top',
-        }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/30" />
-        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-8 py-12 flex flex-col md:flex-row gap-8 w-full">
-          <div className="shrink-0 w-48 sm:w-56 mx-auto md:mx-0">
-            {movie.poster_path ? (
-              <img src={movie.poster_path} alt="" className="rounded-lg shadow-card w-full" loading="lazy" />
-            ) : (
-              <div className="aspect-[2/3] bg-zinc-800 rounded-lg" />
-            )}
-          </div>
-          <div className="flex-1 text-center md:text-left">
-            <h1 className="text-3xl sm:text-5xl font-black mb-2">{movie.title}</h1>
-            <p className="text-zinc-200 font-semibold mb-2">
-              <span className="text-narmax-red">{movie.vote_average?.toFixed(1)}</span>
-              <span className="text-zinc-500"> |</span> {movie.release_date?.slice(0, 4)}
-            </p>
-            <p className="text-zinc-300 max-w-2xl mb-6">{movie.overview}</p>
-            <div className="flex flex-wrap gap-3 justify-center md:justify-start">
-              <Link
-                to={`${base}/watch/${id}`}
-                className="bg-narmax-red hover:bg-red-700 px-8 py-3 rounded font-bold transition"
-              >
-                Watch Now
-              </Link>
-              <button
-                type="button"
-                onClick={toggleList}
-                className="bg-white/10 border border-white/30 px-8 py-3 rounded font-semibold hover:bg-white/20 transition"
-              >
-                {inList ? 'In My List' : 'Add to My List'}
-              </button>
-            </div>
-            {movie.trailer?.youtube && (
-              <div className="mt-8 max-w-3xl">
-                <h3 className="font-bold mb-2">Trailer</h3>
-                <div className="aspect-video rounded-lg overflow-hidden border border-zinc-800">
-                  <iframe title="trailer" src={movie.trailer.youtube} className="w-full h-full" allowFullScreen />
-                </div>
+
+      {/* Hero Banner */}
+      <div className="relative min-h-[60vh] lg:min-h-[70vh] flex items-end pb-12 pt-28 overflow-hidden">
+        {movie.backdrop_path && (
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${movie.backdrop_path})` }}
+          />
+        )}
+        <div className="cine-vignette-hero" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-[#09090b]/60 to-transparent" />
+
+        <div className="relative z-10 max-w-[1920px] mx-auto px-4 sm:px-8 w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-end">
+            {/* Left: Title, Badges, Overview, Play */}
+            <div className="lg:col-span-2 space-y-4">
+              <div className="flex flex-wrap items-center gap-2.5 text-xs font-bold">
+                <span className="bg-[#f5c518] text-black px-2.5 py-0.5 rounded font-black tracking-wider">
+                  IMDb {movie.vote_average?.toFixed(1) || 'N/A'}
+                </span>
+                <span className="text-zinc-300 bg-white/10 px-2.5 py-0.5 rounded backdrop-blur">
+                  {movie.release_date?.slice(0, 4) || 'Movie'}
+                </span>
+                {movie.runtime && (
+                  <span className="text-zinc-300 bg-white/10 px-2.5 py-0.5 rounded backdrop-blur">
+                    {movie.runtime} min
+                  </span>
+                )}
+                <span className="border border-white/20 text-zinc-300 px-2 py-0.5 rounded text-[11px]">
+                  HD
+                </span>
               </div>
-            )}
+
+              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight drop-shadow-md">
+                {movie.title}
+              </h1>
+
+              {movie.genres?.length > 0 && (
+                <p className="text-xs text-zinc-400 font-medium">
+                  {movie.genres.map((g) => g.name).join(' • ')}
+                </p>
+              )}
+
+              <p className="text-sm sm:text-base text-zinc-300 max-w-3xl line-clamp-3 leading-relaxed drop-shadow">
+                {movie.overview}
+              </p>
+
+              <div className="flex items-center gap-3 pt-2">
+                <Link
+                  to={`${base}/watch/${id}`}
+                  className="cine-play-pill text-sm sm:text-base"
+                >
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                  Watch Now
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={toggleList}
+                  className={`cine-icon-circle ${inList ? 'border-narmax-red text-narmax-red' : ''}`}
+                  title={inList ? 'Remove from My List' : 'Add to My List'}
+                >
+                  {inList ? (
+                    <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                      <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" />
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                      <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Right: Movie Information Card */}
+            <div className="bg-zinc-900/80 border border-white/10 rounded-2xl p-5 backdrop-blur-md space-y-3 text-xs">
+              <h3 className="text-sm font-extrabold text-white tracking-wide uppercase border-b border-white/10 pb-2">
+                Movie Information
+              </h3>
+              <div className="grid grid-cols-2 gap-y-2 text-zinc-400">
+                <span className="font-semibold text-zinc-500">Status</span>
+                <span className="text-white font-medium">{movie.status || 'Released'}</span>
+
+                <span className="font-semibold text-zinc-500">Release Date</span>
+                <span className="text-white font-medium">{movie.release_date || 'N/A'}</span>
+
+                <span className="font-semibold text-zinc-500">Duration</span>
+                <span className="text-white font-medium">{movie.runtime ? `${movie.runtime} minutes` : 'N/A'}</span>
+
+                <span className="font-semibold text-zinc-500">Language</span>
+                <span className="text-white font-medium uppercase">{movie.original_language || 'EN'}</span>
+
+                {movie.production_companies?.length > 0 && (
+                  <>
+                    <span className="font-semibold text-zinc-500">Production</span>
+                    <span className="text-white font-medium line-clamp-1">{movie.production_companies[0].name}</span>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
