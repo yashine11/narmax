@@ -158,7 +158,6 @@ export default function WatchPage() {
 
   const playerContainerRef = useRef(null);
   const iframeRef = useRef(null);
-  const fallbackTimerRef = useRef(null);
   const watchPercentRef = useRef(0);
   const savedPercentRef = useRef(0);
   const savingRef = useRef(false);
@@ -181,12 +180,7 @@ export default function WatchPage() {
   const [seasonEpisodes, setSeasonEpisodes] = useState([]);
   const [loadingEpisodes, setLoadingEpisodes] = useState(false);
 
-  // Ad Shield & Cloak state
-  const [adShield, setAdShield] = useState(() => {
-    if (typeof window === 'undefined') return true;
-    return window.localStorage.getItem('narmax:ad-shield') !== 'false';
-  });
-  const [cloakShieldActive, setCloakShieldActive] = useState(true);
+  // Player controls visibility
   const [showControls, setShowControls] = useState(true);
 
   // Theater Mode state (persisted)
@@ -300,7 +294,6 @@ export default function WatchPage() {
   const loadSources = useCallback(() => {
     setPlayerReady(false);
     setSwitching(true);
-    setCloakShieldActive(true);
 
     let preferredLanguage = 'en';
     try {
@@ -356,7 +349,6 @@ export default function WatchPage() {
       setSwitching(true);
       setPlayerReady(false);
       setPlayerStatus('idle');
-      setCloakShieldActive(true);
       setActiveIdx(nextIndex);
     },
     [activeIdx, sources.length]
@@ -374,27 +366,11 @@ export default function WatchPage() {
     if (!activeSource) return;
     setSwitching(true);
     setPlayerReady(false);
-    setCloakShieldActive(true);
     const current = activeIdx;
     setActiveIdx(-1);
     setTimeout(() => setActiveIdx(current), 100);
     toast.success('Reloading stream...');
   }, [activeIdx, activeSource]);
-
-  useEffect(() => {
-    if (fallbackTimerRef.current) clearTimeout(fallbackTimerRef.current);
-    if (!src || playerReady || sources.length < 2) return undefined;
-
-    fallbackTimerRef.current = setTimeout(() => {
-      if (!playerReady) {
-        tryNextSource();
-      }
-    }, SOURCE_READY_TIMEOUT_MS);
-
-    return () => {
-      if (fallbackTimerRef.current) clearTimeout(fallbackTimerRef.current);
-    };
-  }, [playerReady, sources.length, src, tryNextSource]);
 
   const sortedSeasons = useMemo(() => {
     if (type !== 'tv') return [];
@@ -447,7 +423,6 @@ export default function WatchPage() {
       setSwitching(true);
       setPlayerReady(false);
       setPlayerStatus('idle');
-      setCloakShieldActive(true);
       autoAdvanceRef.current = false;
       navigate(`/watch/${id}?type=tv&season=${target.season}&episode=${target.episode}`);
     },
@@ -509,7 +484,7 @@ export default function WatchPage() {
       }
 
       if (parsed.status === 'error') {
-        tryNextSource();
+        toast.error('Playback issue reported. Try selecting another server below.');
       }
     };
 
@@ -523,19 +498,8 @@ export default function WatchPage() {
     runtimeMinutes,
     saveProgress,
     season,
-    tryNextSource,
     type,
   ]);
-
-  // Blur & Focus anti-popunder safeguard
-  useEffect(() => {
-    if (!adShield) return;
-    const handleBlur = () => {
-      window.focus();
-    };
-    window.addEventListener('blur', handleBlur);
-    return () => window.removeEventListener('blur', handleBlur);
-  }, [adShield]);
 
   // Keyboard shortcuts (Theater mode 't', Fullscreen 'f')
   useEffect(() => {
@@ -586,19 +550,6 @@ export default function WatchPage() {
     return () => document.removeEventListener('fullscreenchange', handleFsChange);
   }, []);
 
-  const toggleAdShield = useCallback(() => {
-    setAdShield((prev) => {
-      const next = !prev;
-      window.localStorage.setItem('narmax:ad-shield', String(next));
-      if (next) {
-        toast.success('Ad Shield Active: Popups & redirects blocked');
-      } else {
-        toast('Ad Shield Paused: Direct source access', { icon: '⚠️' });
-      }
-      return next;
-    });
-  }, []);
-
   const handleIframeLoad = useCallback(() => {
     setPlayerReady(true);
     setSwitching(false);
@@ -618,10 +569,6 @@ export default function WatchPage() {
     controlsTimeoutRef.current = setTimeout(() => {
       setShowControls(false);
     }, 1000);
-  }, []);
-
-  const handleCloakClick = useCallback(() => {
-    setCloakShieldActive(false);
   }, []);
 
   const remainingSeconds = useMemo(() => {
@@ -702,7 +649,7 @@ export default function WatchPage() {
                   : 'h-[60vh] min-h-[380px] sm:h-[66vh] xl:h-[72vh] w-full rounded-[1.6rem] border border-white/10 shadow-[0_24px_90px_rgba(0,0,0,0.65)]'
               }`}
             >
-              {/* The Embed Player Iframe with Sandboxing Shield */}
+              {/* Normal Embed Player Iframe */}
               {src ? (
                 <iframe
                   ref={iframeRef}
@@ -710,14 +657,9 @@ export default function WatchPage() {
                   title="player"
                   src={src}
                   className="h-full w-full border-0"
-                  allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+                  allow="autoplay; fullscreen; picture-in-picture; encrypted-media; accelerometer; gyroscope"
                   allowFullScreen
                   onLoad={handleIframeLoad}
-                  sandbox={
-                    adShield
-                      ? 'allow-scripts allow-same-origin allow-forms allow-presentation allow-orientation-lock'
-                      : undefined
-                  }
                 />
               ) : (
                 <div className="flex h-full items-center justify-center text-sm text-zinc-500">
@@ -728,65 +670,32 @@ export default function WatchPage() {
                 </div>
               )}
 
-              {/* Cloak Protection Shield Layer: Absorb Malicious Popups */}
-              {cloakShieldActive && playerReady && !switching && (
-                <div
-                  onClick={handleCloakClick}
-                  className="absolute inset-0 z-20 flex cursor-pointer flex-col items-center justify-center bg-black/35 backdrop-blur-[2px] transition-all duration-300 hover:bg-black/20"
-                >
-                  <div className="group/btn flex items-center gap-3 rounded-2xl border border-white/20 bg-black/80 px-6 py-3.5 shadow-2xl backdrop-blur-md transition-all hover:scale-105 hover:border-narmax-cyan hover:shadow-[0_0_30px_rgba(86,207,225,0.3)]">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-narmax-red text-white shadow-lg transition-transform group-hover/btn:scale-110">
-                      <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5 translate-x-0.5">
-                        <path d="M8 5v14l11-7z" />
-                      </svg>
-                    </div>
-                    <div className="text-left">
-                      <p className="text-sm font-bold text-white">Click to Control & Play</p>
-                      <p className="flex items-center gap-1.5 text-[11px] font-semibold text-narmax-cyan">
-                        <span className="inline-block h-1.5 w-1.5 rounded-full bg-narmax-cyan animate-ping" />
-                        Cloaked & Popups Blocked
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Loading / Source Switching Overlay */}
+              {/* Loading Overlay */}
               {(switching || (src && !playerReady)) && (
-                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-4 bg-black/80 backdrop-blur-sm">
+                <div className="pointer-events-none absolute inset-0 z-30 flex flex-col items-center justify-center gap-4 bg-black/80 backdrop-blur-sm">
                   <div className="h-12 w-12 animate-spin rounded-full border-2 border-narmax-red border-t-transparent" />
                   <p className="text-xs font-semibold uppercase tracking-[0.24em] text-zinc-300">
-                    {switching ? 'Connecting to source...' : 'Preparing player'}
+                    {switching ? 'Connecting to server...' : 'Preparing player...'}
                   </p>
-                  <span className="text-[11px] text-zinc-500">Ad Shield protected</span>
                 </div>
               )}
 
               {/* Floating Frame Controls Overlay (Top Bar inside player) */}
               <div
                 className={`absolute inset-x-0 top-0 z-40 flex items-center justify-between p-4 bg-gradient-to-b from-black/85 via-black/40 to-transparent transition-opacity duration-300 ${
-                  showControls || cloakShieldActive || switching ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                  showControls || switching ? 'opacity-100' : 'opacity-0 pointer-events-none'
                 }`}
               >
-                {/* Left: Shield Status Badge & Toggle */}
+                {/* Left: Active Server Badge */}
                 <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={toggleAdShield}
-                    className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider backdrop-blur-md transition-all ${
-                      adShield
-                        ? 'border-emerald-500/40 bg-emerald-950/60 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]'
-                        : 'border-amber-500/40 bg-amber-950/60 text-amber-400'
-                    }`}
-                    title="Toggle Anti-Ad Cloak Shield"
-                  >
-                    <span className={`h-2 w-2 rounded-full ${adShield ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
-                    <span>{adShield ? '🛡️ Shield: Active' : 'Shield: Off'}</span>
-                  </button>
-
-                  <div className="hidden sm:flex items-center gap-2 rounded-full border border-white/10 bg-black/50 px-3 py-1.5 text-[11px] text-zinc-300 backdrop-blur-md">
-                    <span className="h-1.5 w-1.5 rounded-full bg-narmax-cyan animate-ping" />
-                    <span>{activeSource?.label || 'Source'}</span>
+                  <div className="flex items-center gap-2 rounded-full border border-white/10 bg-black/60 px-3.5 py-1.5 text-xs text-white backdrop-blur-md">
+                    <span className="h-2 w-2 rounded-full bg-narmax-cyan animate-pulse" />
+                    <span className="font-bold">{activeSource?.label || 'Server'}</span>
+                    {activeSource?.badge && (
+                      <span className="rounded bg-narmax-cyan/20 px-1.5 py-0.5 text-[10px] font-bold text-narmax-cyan">
+                        {activeSource.badge}
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -867,13 +776,6 @@ export default function WatchPage() {
                     )}
                   </div>
 
-                  {/* Anti-ad badge indicator */}
-                  <div className="flex items-center gap-2 self-start sm:self-center">
-                    <span className="flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold text-emerald-400">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                      Ads & Popups Cloaked
-                    </span>
-                  </div>
                 </div>
 
                 {/* Streaming Source Selector Bar */}
@@ -882,10 +784,10 @@ export default function WatchPage() {
                     <div className="flex items-center gap-2">
                       <span className="flex h-2 w-2 rounded-full bg-narmax-cyan animate-pulse" />
                       <p className="text-[10px] font-black uppercase tracking-[0.24em] text-narmax-cyan">
-                        Select Streaming Source
+                        Select Streaming Server
                       </p>
                     </div>
-                    <span className="text-[11px] text-zinc-500">Click if stream buffers</span>
+                    <span className="text-[11px] text-zinc-500">Fixed servers • Click to switch</span>
                   </div>
 
                   <div className="flex flex-wrap gap-2 sm:gap-2.5">

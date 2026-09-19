@@ -1,10 +1,10 @@
 // ─── Stream Service ───────────────────────────────────────────────────────────
-// 5 streaming sources:
-//   1. Main Server  → moviesapi.to    (primary, correct embed format)
-//   2. Server 2     → vaplayer.ru     (original main server)
-//   3. Server 3     → vidsrc-embed.ru (original backup 3)
-//   4. Server 4     → cinextream.cc   (Vidstack / ArtPlayer Fast HD)
-//   5. Server 5     → vidsrc.sbs      (VidSrc SBS, No Ads, red accent)
+// 5 fixed streaming sources:
+//   1. Server 1 → cinextream.cc   (Fast HD)
+//   2. Server 2 → moviesapi.to    (HD)
+//   3. Server 3 → vaplayer.ru     (Mirror)
+//   4. Server 4 → vidsrc-embed.ru (Backup)
+//   5. Server 5 → vidsrc.sbs      (No Ads)
 // ──────────────────────────────────────────────────────────────────────────────
 
 function normalizeTmdbId(id) {
@@ -62,43 +62,43 @@ function labeledMovie(tmdbId, options = {}) {
   else vidsrcParams.set('tmdb', tmdb);
 
   return [
-    // 1. Server 1 — VidSrc SBS (No Ads, custom accent color, timestamp resume)
-    {
-      id: 'vidsrc_sbs',
-      label: 'Server 1',
-      badge: 'No Ads',
-      url: withVidsrcSbsParams(`https://vidsrc.sbs/embed/movie/${tmdb}`, resumeAt),
-    },
-    // 2. Server 2 — Cinextream (Vidstack / ArtPlayer, Fast HD)
+    // 1. Server 1 — Cinextream (Fast HD)
     {
       id: 'cinextream',
-      label: 'Server 2',
+      label: 'Server 1',
       badge: 'Fast HD',
       url: `https://cinextream.cc/api/embed/movie/${tmdb}?color=e50914`,
     },
-    // 3. Server 3 — MoviesAPI (HD embed)
+    // 2. Server 2 — MoviesAPI (HD)
     {
       id: 'moviesapi_main',
-      label: 'Server 3',
+      label: 'Server 2',
       badge: 'HD',
       url: withThemeAndTime(`https://moviesapi.to/movie/${tmdb}`, resumeAt),
     },
-    // 4. Server 4 — VaPlayer (Mirror)
+    // 3. Server 3 — VaPlayer (Mirror)
     {
       id: 'vaplayer_ru',
-      label: 'Server 4',
+      label: 'Server 3',
       badge: 'Mirror',
       url: withResumeParam(`https://vaplayer.ru/embed/movie/${vaplayerId}`, resumeAt),
     },
-    // 5. Server 5 — VidSrc Embed (Backup)
+    // 4. Server 4 — VidSrc Embed (Backup)
     {
       id: 'vidsrc_embed_ru',
-      label: 'Server 5',
+      label: 'Server 4',
       badge: 'Backup',
       url: withResumeParam(
         `https://vidsrc-embed.ru/embed/movie?${vidsrcParams.toString()}`,
         resumeAt
       ),
+    },
+    // 5. Server 5 — VidSrc SBS (No Ads)
+    {
+      id: 'vidsrc_sbs',
+      label: 'Server 5',
+      badge: 'No Ads',
+      url: withVidsrcSbsParams(`https://vidsrc.sbs/embed/movie/${tmdb}`, resumeAt),
     },
   ];
 }
@@ -125,43 +125,43 @@ function labeledTv(tmdbId, season, episode, options = {}) {
   else vidsrcParams.set('tmdb', tmdb);
 
   return [
-    // 1. Server 1 — VidSrc SBS (No Ads, custom accent color, timestamp resume)
-    {
-      id: 'vidsrc_sbs',
-      label: 'Server 1',
-      badge: 'No Ads',
-      url: withVidsrcSbsParams(`https://vidsrc.sbs/embed/tv/${tmdb}/${s}/${e}`, resumeAt),
-    },
-    // 2. Server 2 — Cinextream (Vidstack / ArtPlayer, Fast HD)
+    // 1. Server 1 — Cinextream (Fast HD)
     {
       id: 'cinextream',
-      label: 'Server 2',
+      label: 'Server 1',
       badge: 'Fast HD',
       url: `https://cinextream.cc/api/embed/tv/${tmdb}/${s}/${e}?color=e50914`,
     },
-    // 3. Server 3 — MoviesAPI (HD embed)
+    // 2. Server 2 — MoviesAPI (HD)
     {
       id: 'moviesapi_main',
-      label: 'Server 3',
+      label: 'Server 2',
       badge: 'HD',
       url: withThemeAndTime(`https://moviesapi.to/tv/${tmdb}/${s}/${e}`, resumeAt),
     },
-    // 4. Server 4 — VaPlayer (Mirror)
+    // 3. Server 3 — VaPlayer (Mirror)
     {
       id: 'vaplayer_ru',
-      label: 'Server 4',
+      label: 'Server 3',
       badge: 'Mirror',
       url: withResumeParam(`https://vaplayer.ru/embed/tv/${vaplayerId}/${s}/${e}`, resumeAt),
     },
-    // 5. Server 5 — VidSrc Embed (Backup)
+    // 4. Server 4 — VidSrc Embed (Backup)
     {
       id: 'vidsrc_embed_ru',
-      label: 'Server 5',
+      label: 'Server 4',
       badge: 'Backup',
       url: withResumeParam(
         `https://vidsrc-embed.ru/embed/tv?${vidsrcParams.toString()}`,
         resumeAt
       ),
+    },
+    // 5. Server 5 — VidSrc SBS (No Ads)
+    {
+      id: 'vidsrc_sbs',
+      label: 'Server 5',
+      badge: 'No Ads',
+      url: withVidsrcSbsParams(`https://vidsrc.sbs/embed/tv/${tmdb}/${s}/${e}`, resumeAt),
     },
   ];
 }
