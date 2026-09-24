@@ -201,10 +201,10 @@ export default function Search() {
         {/* Quick Category Filter Switcher Tabs */}
         <div className="mt-4 flex flex-wrap items-center gap-2">
           {[
-            { id: 'all', label: '✨ All' },
-            { id: 'movie', label: '🎬 Movies' },
-            { id: 'tv', label: '📺 TV Series' },
-            { id: 'anime', label: '⛩️ Anime' },
+            { id: 'all', label: 'All' },
+            { id: 'movie', label: 'Movies' },
+            { id: 'tv', label: 'TV Series' },
+            { id: 'anime', label: 'Anime' },
           ].map((tab) => (
             <button
               key={tab.id}

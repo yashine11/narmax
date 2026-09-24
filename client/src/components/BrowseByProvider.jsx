@@ -333,7 +333,7 @@ export default function BrowseByProvider() {
               onDoubleClick={() => handleCategoryNavigate(provider, 'all')}
               className={`cine-provider-badge shrink-0 text-left group transition-all duration-200 ${
                 isSelected
-                  ? 'scale-105 ring-2 ring-narmax-cyan ring-offset-2 ring-offset-black'
+                  ? 'scale-105 opacity-100'
                   : 'hover:scale-102 opacity-85 hover:opacity-100'
               }`}
             >
@@ -342,9 +342,6 @@ export default function BrowseByProvider() {
                 style={{ backgroundColor: provider.bg }}
               >
                 {provider.icon}
-                {isSelected && (
-                  <span className="absolute inset-0 bg-narmax-cyan/10 animate-pulse pointer-events-none" />
-                )}
               </div>
               <span className={`text-xs font-semibold truncate max-w-[90px] text-center transition ${
                 isSelected ? 'text-narmax-cyan font-bold' : 'text-zinc-400 group-hover:text-white'
@@ -379,35 +376,35 @@ export default function BrowseByProvider() {
             </div>
           </div>
 
-          {/* Specific Categories: All, Movies, TV, Anime */}
+          {/* Specific Categories: All, Movies, TV, Anime without emojis */}
           <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
             <button
               type="button"
               onClick={() => handleCategoryNavigate(selectedProvider, 'all')}
-              className="flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-bold text-white transition hover:border-narmax-cyan hover:bg-narmax-cyan/15 hover:text-narmax-cyan hover:scale-105 active:scale-95 shadow"
+              className="flex items-center rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-bold text-white transition hover:border-narmax-cyan hover:bg-narmax-cyan/15 hover:text-narmax-cyan hover:scale-105 active:scale-95 shadow"
             >
-              <span>✨ All {selectedProvider.name}</span>
+              <span>All {selectedProvider.name}</span>
             </button>
             <button
               type="button"
               onClick={() => handleCategoryNavigate(selectedProvider, 'movie')}
-              className="flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-bold text-zinc-200 transition hover:border-narmax-cyan hover:bg-narmax-cyan/15 hover:text-narmax-cyan hover:scale-105 active:scale-95 shadow"
+              className="flex items-center rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-bold text-zinc-200 transition hover:border-narmax-cyan hover:bg-narmax-cyan/15 hover:text-narmax-cyan hover:scale-105 active:scale-95 shadow"
             >
-              <span>🎬 {selectedProvider.name} Movies</span>
+              <span>{selectedProvider.name} Movies</span>
             </button>
             <button
               type="button"
               onClick={() => handleCategoryNavigate(selectedProvider, 'tv')}
-              className="flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-bold text-zinc-200 transition hover:border-narmax-cyan hover:bg-narmax-cyan/15 hover:text-narmax-cyan hover:scale-105 active:scale-95 shadow"
+              className="flex items-center rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-bold text-zinc-200 transition hover:border-narmax-cyan hover:bg-narmax-cyan/15 hover:text-narmax-cyan hover:scale-105 active:scale-95 shadow"
             >
-              <span>📺 {selectedProvider.name} TV</span>
+              <span>{selectedProvider.name} TV</span>
             </button>
             <button
               type="button"
               onClick={() => handleCategoryNavigate(selectedProvider, 'anime')}
-              className="flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-bold text-zinc-200 transition hover:border-narmax-cyan hover:bg-narmax-cyan/15 hover:text-narmax-cyan hover:scale-105 active:scale-95 shadow"
+              className="flex items-center rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-bold text-zinc-200 transition hover:border-narmax-cyan hover:bg-narmax-cyan/15 hover:text-narmax-cyan hover:scale-105 active:scale-95 shadow"
             >
-              <span>⛩️ {selectedProvider.name} Anime</span>
+              <span>{selectedProvider.name} Anime</span>
             </button>
           </div>
         </div>
