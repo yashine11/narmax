@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const PROVIDERS = [
@@ -88,7 +89,7 @@ const PROVIDERS = [
     color: '#ffffff',
     icon: (
       <div className="flex items-center justify-center">
-        <svg className="w-10 h-10 fill-white" viewBox="0 0 24 24">
+        <svg className="w-9 h-9 fill-white" viewBox="0 0 24 24">
           <circle cx="12" cy="12" r="9" fill="white" />
           <circle cx="14" cy="11" r="5" fill="#F47521" />
         </svg>
@@ -131,43 +132,286 @@ const PROVIDERS = [
       <span className="font-black text-lg tracking-tight text-black">pluto<span className="text-amber-700">tv</span></span>
     ),
   },
+  {
+    id: 'showtime',
+    name: 'Showtime',
+    bg: '#CC0000',
+    color: '#ffffff',
+    icon: (
+      <span className="font-black text-xs tracking-widest text-white uppercase">SHOWTIME</span>
+    ),
+  },
+  {
+    id: 'discovery',
+    name: 'Discovery+',
+    bg: '#002D5B',
+    color: '#00E5FF',
+    icon: (
+      <span className="font-extrabold text-xs tracking-tight text-white">discovery<span className="text-[#00E5FF] font-black">+</span></span>
+    ),
+  },
+  {
+    id: 'mgm',
+    name: 'MGM+',
+    bg: '#141414',
+    color: '#E6B800',
+    icon: (
+      <span className="font-black text-lg tracking-wider text-[#E6B800]">MGM+</span>
+    ),
+  },
+  {
+    id: 'bbciplayer',
+    name: 'BBC iPlayer',
+    bg: '#000000',
+    color: '#FF4444',
+    icon: (
+      <div className="flex flex-col items-center leading-none">
+        <span className="text-[10px] font-black tracking-widest text-white">BBC</span>
+        <span className="text-xs font-bold text-[#FF4444]">iPlayer</span>
+      </div>
+    ),
+  },
+  {
+    id: 'britbox',
+    name: 'BritBox',
+    bg: '#0B2545',
+    color: '#ffffff',
+    icon: (
+      <span className="font-black text-sm tracking-tight text-white">britbox</span>
+    ),
+  },
+  {
+    id: 'shudder',
+    name: 'Shudder',
+    bg: '#660000',
+    color: '#ffffff',
+    icon: (
+      <span className="font-black text-xs tracking-widest text-white">SHUDDER</span>
+    ),
+  },
+  {
+    id: 'sonypictures',
+    name: 'Sony Pictures',
+    bg: '#000000',
+    color: '#ffffff',
+    icon: (
+      <span className="font-black text-sm tracking-widest text-white">SONY</span>
+    ),
+  },
+  {
+    id: 'rakuten',
+    name: 'Rakuten TV',
+    bg: '#BF0000',
+    color: '#ffffff',
+    icon: (
+      <div className="flex flex-col items-center leading-none">
+        <span className="text-[9px] font-bold text-white">Rakuten</span>
+        <span className="text-xs font-black text-white">TV</span>
+      </div>
+    ),
+  },
+  {
+    id: 'vudu',
+    name: 'Vudu',
+    bg: '#0055EE',
+    color: '#ffffff',
+    icon: (
+      <span className="font-black text-lg tracking-wider text-white">VUDU</span>
+    ),
+  },
+  {
+    id: 'mubi',
+    name: 'MUBI',
+    bg: '#111111',
+    color: '#ffffff',
+    icon: (
+      <span className="font-black text-sm tracking-widest text-white">MUBI</span>
+    ),
+  },
+  {
+    id: 'plex',
+    name: 'Plex',
+    bg: '#E5A00D',
+    color: '#000000',
+    icon: (
+      <span className="font-black text-lg tracking-wider text-black">PLEX</span>
+    ),
+  },
 ];
 
 export default function BrowseByProvider() {
   const navigate = useNavigate();
+  const railRef = useRef(null);
+  const [selectedProvider, setSelectedProvider] = useState(PROVIDERS[0]); // Default to Netflix
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
 
-  const handleProviderClick = (provider) => {
-    navigate(`/search?q=${encodeURIComponent(provider.name)}`);
+  const checkScroll = () => {
+    if (!railRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = railRef.current;
+    setCanScrollLeft(scrollLeft > 10);
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+  };
+
+  useEffect(() => {
+    checkScroll();
+    const el = railRef.current;
+    if (!el) return;
+    el.addEventListener('scroll', checkScroll, { passive: true });
+    window.addEventListener('resize', checkScroll);
+    return () => {
+      el.removeEventListener('scroll', checkScroll);
+      window.removeEventListener('resize', checkScroll);
+    };
+  }, []);
+
+  const scroll = (direction) => {
+    if (!railRef.current) return;
+    railRef.current.scrollBy({ left: direction * 550, behavior: 'smooth' });
+  };
+
+  const handleProviderSelect = (provider) => {
+    setSelectedProvider(provider);
+  };
+
+  const handleCategoryNavigate = (provider, type = 'all') => {
+    const qParam = encodeURIComponent(provider.name);
+    navigate(`/search?provider=${provider.id}&type=${type}&q=${qParam}`);
   };
 
   return (
-    <section className="mx-auto max-w-[1920px] px-6 py-8 sm:px-12 md:px-16">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-bold text-white sm:text-xl">
-          Browse by Provider
-        </h2>
+    <section className="mx-auto max-w-[1920px] px-4 py-8 sm:px-8 md:px-12">
+      {/* Header with Title and Scroll Arrows */}
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.24em] text-narmax-cyan">Streaming Hubs</p>
+          <h2 className="mt-1 text-2xl font-black text-white sm:text-3xl">
+            Browse by Provider
+          </h2>
+        </div>
+
+        {/* Carousel < > Arrow Controls */}
+        <div className="flex gap-2">
+          <button
+            type="button"
+            aria-label="Scroll left"
+            disabled={!canScrollLeft}
+            onClick={() => scroll(-1)}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-black/80 text-white backdrop-blur-md transition-all duration-200 hover:border-cyan-400/60 hover:bg-zinc-900 hover:scale-105 active:scale-95 disabled:opacity-25 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:border-white/15 disabled:hover:bg-black/80"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            aria-label="Scroll right"
+            disabled={!canScrollRight}
+            onClick={() => scroll(1)}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-black/80 text-white backdrop-blur-md transition-all duration-200 hover:border-cyan-400/60 hover:bg-zinc-900 hover:scale-105 active:scale-95 disabled:opacity-25 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:border-white/15 disabled:hover:bg-black/80"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
       </div>
 
-      <div className="row-scroll no-scrollbar flex items-center gap-4 overflow-x-auto pb-4 pt-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-        {PROVIDERS.map((provider) => (
-          <button
-            key={provider.id}
-            type="button"
-            onClick={() => handleProviderClick(provider)}
-            className="cine-provider-badge shrink-0 text-left group"
-          >
-            <div
-              className="cine-provider-icon"
-              style={{ backgroundColor: provider.bg }}
+      {/* Horizontal Provider Badges Rail */}
+      <div
+        ref={railRef}
+        className="premium-row-scroll no-scrollbar flex items-center gap-3 overflow-x-auto pb-2 pt-2"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
+        {PROVIDERS.map((provider) => {
+          const isSelected = selectedProvider?.id === provider.id;
+          return (
+            <button
+              key={provider.id}
+              type="button"
+              onClick={() => handleProviderSelect(provider)}
+              onDoubleClick={() => handleCategoryNavigate(provider, 'all')}
+              className={`cine-provider-badge shrink-0 text-left group transition-all duration-200 ${
+                isSelected
+                  ? 'scale-105 ring-2 ring-narmax-cyan ring-offset-2 ring-offset-black'
+                  : 'hover:scale-102 opacity-85 hover:opacity-100'
+              }`}
             >
-              {provider.icon}
-            </div>
-            <span className="text-xs font-medium text-zinc-400 group-hover:text-white transition truncate max-w-[90px] text-center">
-              {provider.name}
-            </span>
-          </button>
-        ))}
+              <div
+                className="cine-provider-icon relative overflow-hidden"
+                style={{ backgroundColor: provider.bg }}
+              >
+                {provider.icon}
+                {isSelected && (
+                  <span className="absolute inset-0 bg-narmax-cyan/10 animate-pulse pointer-events-none" />
+                )}
+              </div>
+              <span className={`text-xs font-semibold truncate max-w-[90px] text-center transition ${
+                isSelected ? 'text-narmax-cyan font-bold' : 'text-zinc-400 group-hover:text-white'
+              }`}>
+                {provider.name}
+              </span>
+            </button>
+          );
+        })}
       </div>
+
+      {/* Specific Clean Categories Sub-Bar: Movies, TV, Anime */}
+      {selectedProvider && (
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-5 backdrop-blur-xl animate-fade-in shadow-2xl">
+          <div className="flex items-center gap-3.5">
+            <div
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl font-bold shadow-md ring-1 ring-white/10"
+              style={{ backgroundColor: selectedProvider.bg, color: selectedProvider.color }}
+            >
+              {selectedProvider.icon}
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-base font-black text-white">{selectedProvider.name}</span>
+                <span className="rounded-full bg-narmax-cyan/15 px-2 py-0.5 text-[10px] font-bold text-narmax-cyan border border-narmax-cyan/30">
+                  Catalog
+                </span>
+              </div>
+              <p className="text-xs text-zinc-400 mt-0.5">
+                Select a category to stream from {selectedProvider.name}:
+              </p>
+            </div>
+          </div>
+
+          {/* Specific Categories: All, Movies, TV, Anime */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+            <button
+              type="button"
+              onClick={() => handleCategoryNavigate(selectedProvider, 'all')}
+              className="flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-bold text-white transition hover:border-narmax-cyan hover:bg-narmax-cyan/15 hover:text-narmax-cyan hover:scale-105 active:scale-95 shadow"
+            >
+              <span>✨ All {selectedProvider.name}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleCategoryNavigate(selectedProvider, 'movie')}
+              className="flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-bold text-zinc-200 transition hover:border-narmax-cyan hover:bg-narmax-cyan/15 hover:text-narmax-cyan hover:scale-105 active:scale-95 shadow"
+            >
+              <span>🎬 {selectedProvider.name} Movies</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleCategoryNavigate(selectedProvider, 'tv')}
+              className="flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-bold text-zinc-200 transition hover:border-narmax-cyan hover:bg-narmax-cyan/15 hover:text-narmax-cyan hover:scale-105 active:scale-95 shadow"
+            >
+              <span>📺 {selectedProvider.name} TV</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleCategoryNavigate(selectedProvider, 'anime')}
+              className="flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-bold text-zinc-200 transition hover:border-narmax-cyan hover:bg-narmax-cyan/15 hover:text-narmax-cyan hover:scale-105 active:scale-95 shadow"
+            >
+              <span>⛩️ {selectedProvider.name} Anime</span>
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

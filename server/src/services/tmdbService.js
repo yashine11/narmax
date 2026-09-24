@@ -73,6 +73,9 @@ export async function discoverMovies(
     sortBy = 'popularity.desc',
     voteCountGte,
     withKeywords,
+    withWatchProviders,
+    watchRegion = 'US',
+    withCompanies,
   } = {}
 ) {
   const mergedGenres = new Set();
@@ -96,6 +99,8 @@ export async function discoverMovies(
     include_adult: 'false',
     ...(withGenres ? { with_genres: withGenres } : {}),
     ...(withKeywords ? { with_keywords: withKeywords } : {}),
+    ...(withWatchProviders ? { with_watch_providers: withWatchProviders, watch_region: watchRegion } : {}),
+    ...(withCompanies ? { with_companies: withCompanies } : {}),
     ...(normalizedLanguage ? { with_original_language: normalizedLanguage } : {}),
     ...(parsedYear >= 1900 ? { primary_release_year: parsedYear } : {}),
     ...(parsedRating >= 1 ? { 'vote_average.gte': parsedRating } : {}),
@@ -134,6 +139,10 @@ export async function discoverTv(
     sortBy = 'popularity.desc',
     voteCountGte,
     withKeywords,
+    withNetworks,
+    withWatchProviders,
+    watchRegion = 'US',
+    withCompanies,
   } = {}
 ) {
   const mergedGenres = new Set();
@@ -156,6 +165,9 @@ export async function discoverTv(
     include_adult: 'false',
     ...(withGenres ? { with_genres: withGenres } : {}),
     ...(withKeywords ? { with_keywords: withKeywords } : {}),
+    ...(withNetworks ? { with_networks: withNetworks } : {}),
+    ...(withWatchProviders ? { with_watch_providers: withWatchProviders, watch_region: watchRegion } : {}),
+    ...(withCompanies ? { with_companies: withCompanies } : {}),
     ...(normalizedLanguage ? { with_original_language: normalizedLanguage } : {}),
     ...(parsedYear >= 1900 ? { first_air_date_year: parsedYear } : {}),
     ...(parsedRating >= 1 ? { 'vote_average.gte': parsedRating } : {}),

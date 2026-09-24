@@ -245,6 +245,33 @@ async function actorExpandedRows(query, multiResults = []) {
   return rows;
 }
 
+const PROVIDER_CONFIG = {
+  netflix: { name: 'Netflix', providerId: '8', networkId: '213', keywordId: '256183' },
+  prime: { name: 'Amazon Prime', providerId: '9', networkId: '1024', keywordId: '256800' },
+  disney: { name: 'Disney Plus', providerId: '337', networkId: '2739', keywordId: '257548' },
+  apple: { name: 'Apple TV+', providerId: '350', networkId: '2552', keywordId: '255374' },
+  hulu: { name: 'Hulu', providerId: '15', networkId: '453', keywordId: '258045' },
+  hbomax: { name: 'HBO Max', providerId: '1899', networkId: '49', keywordId: '270390' },
+  paramount: { name: 'Paramount+', providerId: '531', networkId: '4330' },
+  peacock: { name: 'Peacock', providerId: '386', networkId: '3353' },
+  crunchyroll: { name: 'Crunchyroll', providerId: '283', networkId: '1112' },
+  starz: { name: 'Starz', providerId: '43', networkId: '318' },
+  amc: { name: 'AMC+', providerId: '528', networkId: '4642' },
+  tubi: { name: 'Tubi TV', providerId: '73' },
+  pluto: { name: 'Pluto TV', providerId: '300' },
+  showtime: { name: 'Showtime', providerId: '37', networkId: '67' },
+  discovery: { name: 'Discovery+', providerId: '445', networkId: '64' },
+  mgm: { name: 'MGM+', providerId: '34', networkId: '3187' },
+  bbciplayer: { name: 'BBC iPlayer', providerId: '38', networkId: '4' },
+  britbox: { name: 'BritBox', providerId: '380' },
+  shudder: { name: 'Shudder', providerId: '99' },
+  rakuten: { name: 'Rakuten TV', providerId: '35' },
+  sonypictures: { name: 'Sony Pictures Core', providerId: '683' },
+  vudu: { name: 'Vudu', providerId: '7' },
+  mubi: { name: 'MUBI', providerId: '11' },
+  plex: { name: 'Plex', providerId: '538' },
+};
+
 export async function search(req, res) {
   try {
     const q = String(req.query.q || '').trim();
@@ -254,7 +281,113 @@ export async function search(req, res) {
     const year = req.query.year ? Number(req.query.year) : null;
     const rating = req.query.rating ? Number(req.query.rating) : null;
     const special = String(req.query.special || '').trim();
+    const providerParam = String(req.query.provider || '').toLowerCase().trim();
+    const typeParam = String(req.query.type || '').toLowerCase().trim();
     const hasBrowseFilters = Boolean(genreId || language || year || rating || special);
+
+    // Explicit Provider Lookup (e.g. Netflix Movies, Netflix TV, Netflix Anime)
+    if (providerParam && PROVIDER_CONFIG[providerParam]) {
+      const cfg = PROVIDER_CONFIG[providerParam];
+      let rows = [];
+      let totalPages = 1;
+      let totalResults = 0;
+
+      if (typeParam === 'movie') {
+        const data = await discoverMovies({
+          page,
+          withWatchProviders: cfg.providerId,
+          withKeywords: cfg.keywordId,
+          genreId,
+          language,
+          year,
+          rating,
+          sortBy: 'popularity.desc',
+        });
+        rows = (data.results || []).map(mapMovie);
+        totalPages = data.total_pages || 1;
+        totalResults = data.total_results || rows.length;
+      } else if (typeParam === 'tv') {
+        const data = await discoverTv({
+          page,
+          withWatchProviders: cfg.providerId,
+          withNetworks: cfg.networkId,
+          genreId,
+          language,
+          year,
+          rating,
+          sortBy: 'popularity.desc',
+        });
+        rows = (data.results || []).map((item) => mapMedia(item, 'tv'));
+        totalPages = data.total_pages || 1;
+        totalResults = data.total_results || rows.length;
+      } else if (typeParam === 'anime') {
+        const [tvAnime, movieAnime] = await Promise.all([
+          discoverTv({
+            page,
+            withWatchProviders: cfg.providerId,
+            genreId: 16,
+            language: 'ja',
+            sortBy: 'popularity.desc',
+          }),
+          discoverMovies({
+            page,
+            withWatchProviders: cfg.providerId,
+            genreId: 16,
+            language: 'ja',
+            sortBy: 'popularity.desc',
+          }),
+        ]);
+        const mappedTv = (tvAnime.results || []).map((item) => mapMedia(item, 'tv'));
+        const mappedMovies = (movieAnime.results || []).map(mapMovie);
+        rows = dedupeByMedia([...mappedTv, ...mappedMovies]).sort(
+          (a, b) => Number(b.popularity || 0) - Number(a.popularity || 0)
+        );
+        totalPages = Math.max(tvAnime.total_pages || 1, movieAnime.total_pages || 1);
+        totalResults = (tvAnime.total_results || 0) + (movieAnime.total_results || 0);
+      } else {
+        // All categories for this provider
+        const [moviesData, tvData] = await Promise.all([
+          discoverMovies({
+            page,
+            withWatchProviders: cfg.providerId,
+            withKeywords: cfg.keywordId,
+            genreId,
+            language,
+            year,
+            rating,
+            sortBy: 'popularity.desc',
+          }),
+          discoverTv({
+            page,
+            withWatchProviders: cfg.providerId,
+            withNetworks: cfg.networkId,
+            genreId,
+            language,
+            year,
+            rating,
+            sortBy: 'popularity.desc',
+          }),
+        ]);
+        const mappedMovies = (moviesData.results || []).map(mapMovie);
+        const mappedTv = (tvData.results || []).map((item) => mapMedia(item, 'tv'));
+        rows = dedupeByMedia([...mappedMovies, ...mappedTv]).sort(
+          (a, b) => Number(b.popularity || 0) - Number(a.popularity || 0)
+        );
+        totalPages = Math.max(moviesData.total_pages || 1, tvData.total_pages || 1);
+        totalResults = (moviesData.total_results || 0) + (tvData.total_results || 0);
+      }
+
+      rows = applyFilters(rows, { genreId, language, year, rating });
+
+      return res.json({
+        page,
+        total_pages: totalPages,
+        total_results: totalResults,
+        results: rows.map(stripInternal),
+        mode: 'provider',
+        provider: cfg.name,
+      });
+    }
 
     if (!q) {
       if (hasBrowseFilters) {
@@ -345,6 +478,20 @@ export async function search(req, res) {
     rows = applyFilters(rows, { genreId, language, year, rating }).sort(
       (a, b) => scoreSearchResult(b, queryNorm) - scoreSearchResult(a, queryNorm)
     );
+
+    if (typeParam === 'movie') {
+      rows = rows.filter((r) => r.media_type === 'movie');
+    } else if (typeParam === 'tv') {
+      rows = rows.filter((r) => r.media_type === 'tv');
+    } else if (typeParam === 'anime') {
+      rows = rows.filter(
+        (r) =>
+          (r.genre_ids || []).includes(16) ||
+          r.original_language === 'ja' ||
+          /anime/i.test(r.title || '') ||
+          /anime/i.test(r.overview || '')
+      );
+    }
 
     return res.json({
       page: multi.page,

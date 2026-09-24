@@ -21,8 +21,10 @@ export default function Search() {
   const { cardStyle } = usePreferences() || {};
   const isLandscape = cardStyle === 'backdrops';
   const navigate = useNavigate();
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   const q = String(params.get('q') || '').trim();
+  const provider = String(params.get('provider') || '').trim();
+  const typeParam = String(params.get('type') || 'all').trim();
 
   const [results, setResults] = useState([]);
   const [page, setPage] = useState(1);
@@ -56,7 +58,7 @@ export default function Search() {
       navigate('/login?portal=riablo-sphinx', { replace: true });
       return;
     }
-    if (!q) {
+    if (!q && !provider) {
       setResults([]);
       setTotalPages(1);
       setLoading(false);
@@ -67,14 +69,21 @@ export default function Search() {
     setLoadingMore(false);
     setPage(1);
     api
-      .get('/api/search', { params: { q: q || undefined, page: 1 } })
+      .get('/api/search', {
+        params: {
+          q: q || undefined,
+          provider: provider || undefined,
+          type: typeParam !== 'all' ? typeParam : undefined,
+          page: 1,
+        },
+      })
       .then((response) => {
         setResults(response.data.results || []);
         setTotalPages(response.data.total_pages || 1);
       })
       .catch(() => toast.error('Search failed'))
       .finally(() => setLoading(false));
-  }, [q]);
+  }, [q, provider, typeParam]);
 
   const loadMore = useCallback(() => {
     const next = page + 1;
@@ -82,14 +91,29 @@ export default function Search() {
 
     setLoadingMore(true);
     api
-      .get('/api/search', { params: { q: q || undefined, page: next } })
+      .get('/api/search', {
+        params: {
+          q: q || undefined,
+          provider: provider || undefined,
+          type: typeParam !== 'all' ? typeParam : undefined,
+          page: next,
+        },
+      })
       .then((response) => {
         setResults((prev) => [...prev, ...(response.data.results || [])]);
         setPage(next);
       })
       .catch(() => toast.error('Could not load more'))
       .finally(() => setLoadingMore(false));
-  }, [loadingMore, page, q, totalPages]);
+  }, [loadingMore, page, q, provider, typeParam, totalPages]);
+
+  const handleTypeChange = (newType) => {
+    const nextParams = {};
+    if (provider) nextParams.provider = provider;
+    if (q) nextParams.q = q;
+    if (newType !== 'all') nextParams.type = newType;
+    setParams(nextParams);
+  };
 
   const toggleList = useCallback(
     async (item) => {
@@ -141,23 +165,62 @@ export default function Search() {
     return `${results.length} results`;
   }, [loading, results.length]);
 
+  const pageTitle = provider
+    ? `${provider.toUpperCase()} ${typeParam !== 'all' ? `(${typeParam})` : ''} — NARMAX`
+    : q
+    ? `Search: "${q}" — NARMAX`
+    : 'Search Catalog — NARMAX';
+
   return (
     <div className="mx-auto max-w-[1920px] px-4 pt-20 pb-32 sm:px-8 sm:pt-24">
       <Helmet>
-        <title>{q ? `Search: "${q}" — NARMAX` : 'Search Catalog — NARMAX'}</title>
-        <meta name="description" content="Search thousands of movies, TV shows, and entertainment on NARMAX." />
+        <title>{pageTitle}</title>
+        <meta name="description" content="Search thousands of movies, TV shows, anime, and entertainment on NARMAX." />
       </Helmet>
-      <div className="glass-panel mb-6 rounded-2xl p-5 sm:p-6">
+      <div className="glass-panel mb-6 rounded-2xl p-5 sm:p-6 shadow-xl">
         <h1 className="text-3xl font-black tracking-tight text-white">Search &amp; Browse</h1>
-        {q ? (
+        {provider ? (
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <span className="text-sm text-zinc-300">
+              Provider Hub: <span className="font-extrabold text-narmax-cyan uppercase">{provider}</span>
+            </span>
+            {typeParam && typeParam !== 'all' && (
+              <span className="rounded-md border border-narmax-cyan/30 bg-narmax-cyan/15 px-2 py-0.5 text-xs font-bold text-narmax-cyan capitalize">
+                {typeParam === 'tv' ? 'TV Series' : typeParam}
+              </span>
+            )}
+          </div>
+        ) : q ? (
           <p className="mt-2 text-sm text-zinc-300">
             Showing all related results for <span className="font-semibold text-white">"{q}"</span>
           </p>
         ) : (
           <p className="mt-2 text-sm text-zinc-400">Type in the top search bar to discover movies, TV shows, cast, and related matches.</p>
         )}
-        <div className="mt-4 inline-flex rounded-full border border-white/15 bg-black/40 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-zinc-300">
-          {resultLabel}
+
+        {/* Quick Category Filter Switcher Tabs */}
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          {[
+            { id: 'all', label: '✨ All' },
+            { id: 'movie', label: '🎬 Movies' },
+            { id: 'tv', label: '📺 TV Series' },
+            { id: 'anime', label: '⛩️ Anime' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => handleTypeChange(tab.id)}
+              className={`rounded-full px-4 py-1.5 text-xs font-bold transition-all duration-200 ${
+                typeParam === tab.id
+                  ? 'border border-narmax-cyan bg-narmax-cyan/20 text-narmax-cyan shadow-[0_0_12px_rgba(86,207,225,0.3)] scale-105'
+                  : 'border border-white/10 bg-black/40 text-zinc-400 hover:border-white/20 hover:text-white'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+          <span className="ml-auto inline-flex rounded-full border border-white/15 bg-black/40 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-zinc-300">
+            {resultLabel}
+          </span>
         </div>
       </div>
 
