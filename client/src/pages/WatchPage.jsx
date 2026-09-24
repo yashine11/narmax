@@ -17,6 +17,7 @@ const ALLOWED_PLAYER_ORIGINS = new Set([
   'https://cinextream.cc',
   'https://cinextream.net',
   'https://vidsrc.sbs',
+  'https://api.codespecters.com',
 ]);
 
 function clampPercent(value) {
