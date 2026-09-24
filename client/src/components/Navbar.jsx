@@ -272,13 +272,11 @@ export default function Navbar() {
 
             <Link
               to="/"
-              className="group flex shrink-0 items-center gap-2.5 transition hover:opacity-95"
+              className="flex shrink-0 items-center hover:opacity-90"
+              aria-label="Home"
               onClick={() => setMobileMenuOpen(false)}
             >
-              <Logo className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg drop-shadow-[0_0_12px_rgba(224,182,83,0.35)] transition-transform duration-300 group-hover:scale-105" />
-              <span className="text-xl font-black tracking-wider text-white sm:text-2xl">
-                NAR<span className="text-[#e50914]">MAX</span>
-              </span>
+              <Logo className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl drop-shadow-[0_0_8px_rgba(224,182,83,0.25)]" />
             </Link>
           </div>
 
