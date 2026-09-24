@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import MovieCard from '../components/MovieCard.jsx';
+import Pagination from '../components/Pagination.jsx';
 import toast from 'react-hot-toast';
 
 const KIDS_KEY = 'narmax_kids_token';
@@ -19,13 +20,14 @@ export default function KidsBrowse() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  const load = (p = 1, append = false) => {
+  const load = (p = 1) => {
     setLoading(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     kidsClient()
       .get('/api/kids/catalog', { params: { page: p } })
       .then((r) => {
         const next = r.data.results || [];
-        setMovies((prev) => (append ? [...prev, ...next] : next));
+        setMovies(next);
         setPage(r.data.page || 1);
         setTotalPages(r.data.total_pages || 1);
       })
@@ -57,17 +59,12 @@ export default function KidsBrowse() {
           ))}
         </div>
       )}
-      {page < totalPages && !loading && (
-        <div className="flex justify-center mt-10">
-          <button
-            type="button"
-            onClick={() => load(page + 1, true)}
-            className="px-8 py-2 bg-blue-800 hover:bg-blue-700 rounded-lg font-semibold"
-          >
-            Load more
-          </button>
-        </div>
-      )}
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        onPageChange={(p) => load(p)}
+        loading={loading}
+      />
     </div>
   );
 }

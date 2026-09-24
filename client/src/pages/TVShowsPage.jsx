@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import api from '../api/client.js';
 import MovieGridCard from '../components/MovieGridCard.jsx';
 import CatalogFilters from '../components/CatalogFilters.jsx';
+import Pagination from '../components/Pagination.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useProgress } from '../context/ProgressContext.jsx';
 import { usePreferences } from '../context/PreferencesContext.jsx';
@@ -102,32 +103,26 @@ export default function TVShowsPage() {
       });
   }, [buildParams]);
 
-  const loadMore = useCallback(() => {
-    if (visibleCount < results.length) {
-      setVisibleCount((current) => Math.min(results.length, current + LOAD_STEP));
-      return;
-    }
-
-    const nextPage = page + 1;
-    if (nextPage > totalPages || loadingMore) return;
-
-    setLoadingMore(true);
-    api
-      .get('/api/tmdb/tv/browse', { params: buildParams(nextPage) })
-      .then((response) => {
-        const nextResults = response.data.results || [];
-        setResults((current) => {
-          const merged = [...current, ...nextResults];
-          setVisibleCount((currentVisible) => Math.min(merged.length, currentVisible + LOAD_STEP));
-          return merged;
-        });
-        setTotalPages(response.data.total_pages || totalPages);
-        setTotalResults(response.data.total_results || totalResults);
-        setPage(nextPage);
-      })
-      .catch(() => toast.error('Could not load more'))
-      .finally(() => setLoadingMore(false));
-  }, [buildParams, loadingMore, page, results.length, totalPages, totalResults, visibleCount]);
+  const handlePageChange = useCallback(
+    (newPage) => {
+      if (newPage < 1 || newPage > totalPages || newPage === page || loading) return;
+      setLoading(true);
+      setPage(newPage);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      api
+        .get('/api/tmdb/tv/browse', { params: buildParams(newPage) })
+        .then((response) => {
+          const nextResults = response.data.results || [];
+          setResults(nextResults);
+          setVisibleCount(nextResults.length);
+          setTotalPages(response.data.total_pages || totalPages);
+          setTotalResults(response.data.total_results || totalResults);
+        })
+        .catch(() => toast.error('Failed to load page'))
+        .finally(() => setLoading(false));
+    },
+    [buildParams, loading, page, totalPages, totalResults]
+  );
 
   const toggleList = useCallback(
     async (show) => {
@@ -238,18 +233,12 @@ export default function TVShowsPage() {
                 })}
               </div>
 
-              {(visibleCount < results.length || page < totalPages) && (
-                <div className="mt-12 flex justify-center">
-                  <button
-                    type="button"
-                    onClick={loadMore}
-                    disabled={loadingMore}
-                    className="rounded-full border border-cyan-300/25 bg-[#03045e]/50 px-6 py-3 text-sm font-semibold text-cyan-100 transition hover:bg-[#1e40af]/45 disabled:opacity-70"
-                  >
-                    {loadingMore ? 'Loading...' : 'Load more'}
-                  </button>
-                </div>
-              )}
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+                loading={loading}
+              />
             </>
           ) : (
             <div className="rounded-[1.4rem] border border-cyan-300/15 bg-[#05060d]/90 px-6 py-10 text-center text-zinc-300">

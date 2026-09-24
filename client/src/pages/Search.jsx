@@ -9,6 +9,7 @@ import { useProgress } from '../context/ProgressContext.jsx';
 import { usePreferences } from '../context/PreferencesContext.jsx';
 import { Fragment } from 'react';
 import AdSlot from '../components/AdSlot.jsx';
+import Pagination from '../components/Pagination.jsx';
 
 function mediaKey(item) {
   const mediaType = item?.media_type === 'tv' ? 'tv' : 'movie';
@@ -85,27 +86,30 @@ export default function Search() {
       .finally(() => setLoading(false));
   }, [q, provider, typeParam]);
 
-  const loadMore = useCallback(() => {
-    const next = page + 1;
-    if (next > totalPages || loadingMore) return;
-
-    setLoadingMore(true);
-    api
-      .get('/api/search', {
-        params: {
-          q: q || undefined,
-          provider: provider || undefined,
-          type: typeParam !== 'all' ? typeParam : undefined,
-          page: next,
-        },
-      })
-      .then((response) => {
-        setResults((prev) => [...prev, ...(response.data.results || [])]);
-        setPage(next);
-      })
-      .catch(() => toast.error('Could not load more'))
-      .finally(() => setLoadingMore(false));
-  }, [loadingMore, page, q, provider, typeParam, totalPages]);
+  const handlePageChange = useCallback(
+    (newPage) => {
+      if (newPage < 1 || newPage > totalPages || newPage === page || loading) return;
+      setLoading(true);
+      setPage(newPage);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      api
+        .get('/api/search', {
+          params: {
+            q: q || undefined,
+            provider: provider || undefined,
+            type: typeParam !== 'all' ? typeParam : undefined,
+            page: newPage,
+          },
+        })
+        .then((response) => {
+          setResults(response.data.results || []);
+          setTotalPages(response.data.total_pages || 1);
+        })
+        .catch(() => toast.error('Failed to load page'))
+        .finally(() => setLoading(false));
+    },
+    [loading, page, provider, q, totalPages, typeParam]
+  );
 
   const handleTypeChange = (newType) => {
     const nextParams = {};
@@ -273,18 +277,12 @@ export default function Search() {
             </div>
           )}
 
-          {page < totalPages && (
-            <div className="mt-16 flex justify-center">
-              <button
-                type="button"
-                onClick={loadMore}
-                disabled={loadingMore}
-                className="rounded-full border border-cyan-300/20 bg-[#03045e]/45 px-8 py-3.5 text-sm font-bold text-white transition hover:border-cyan-300/40 hover:bg-[#1e40af]/45 disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {loadingMore ? 'Loading matches...' : 'Discover more'}
-              </button>
-            </div>
-          )}
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            loading={loading}
+          />
         </>
       )}
     </div>
