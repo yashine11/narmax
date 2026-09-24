@@ -1,15 +1,32 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 2000">
-<defs>
-<linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
-<stop offset="0%" stop-color="#E0B653"/>
-<stop offset="50%" stop-color="#D4A94C"/>
-<stop offset="100%" stop-color="#C99C3F"/>
-</linearGradient>
-</defs>
-<rect width="2000" height="2000" rx="300" fill="#000"/>
-<g>
-<path
-d="M1494 831
+import { memo } from 'react';
+
+/**
+ * Brand Logo component featuring the Crown King Shield Emblem.
+ */
+function Logo({ className = 'h-9 w-9', withBackground = true, ...props }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 2000 2000"
+      className={`shrink-0 select-none ${className}`}
+      aria-label="NARMAX Logo"
+      role="img"
+      {...props}
+    >
+      <defs>
+        <linearGradient id="narmax-gold" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#E0B653" />
+          <stop offset="50%" stopColor="#D4A94C" />
+          <stop offset="100%" stopColor="#C99C3F" />
+        </linearGradient>
+      </defs>
+      {/* Background */}
+      {withBackground && <rect width="2000" height="2000" rx="360" fill="#000" />}
+
+      {/* Crown + Shield */}
+      <g>
+        <path
+          d="M1494 831
 L1433 809 L1371 791 L1238 764 L1103 750
 L970 748 L863 754 L745 770 L633 795
 L510 832 L507 835 L508 1203
@@ -28,18 +45,16 @@ L532 1193 L532 870 L536 866
 L653 831 L751 810 L848 796
 L972 788 L1098 790 L1221 802
 L1342 825 L1402 841 Z"
-fill="url(#gold)"
-fill-rule="evenodd"/>
-<path
-d="M746 431 L715 468 L713 474
-L748 512 L781 474 L781 470 Z"
-fill="url(#gold)"/>
-<path
-d="M1259 430 L1224 472 L1257 513
-L1293 474 L1293 470 Z"
-fill="url(#gold)"/>
-<path
-d="M1495 358
+          fill="url(#narmax-gold)"
+          fillRule="evenodd"
+        />
+        {/* Crown Diamonds */}
+        <path d="M746 431 L715 468 L713 474 L748 512 L781 474 L781 470 Z" fill="url(#narmax-gold)" />
+        <path d="M1259 430 L1224 472 L1257 513 L1293 474 L1293 470 Z" fill="url(#narmax-gold)" />
+
+        {/* Crown */}
+        <path
+          d="M1495 358
 L1480 371 L1337 529 L1304 553
 L1257 572 L1234 568 L1191 549
 L1148 516 L1095 439 L1003 294
@@ -60,12 +75,15 @@ M569 585 L591 627 L571 673
 L549 629 Z
 M1003 529 L1039 598 L1004 669
 L1001 668 L967 602 Z"
-fill="url(#gold)"
-fill-rule="evenodd"/>
-</g>
-<g>
-<path
-d="M1437 885
+          fill="url(#narmax-gold)"
+          fillRule="evenodd"
+        />
+      </g>
+
+      {/* White Face / Moustache / Beard */}
+      <g>
+        <path
+          d="M1437 885
 L1357 860 L1288 844 L1176 827
 L1060 819 L949 820 L836 829
 L729 846 L625 872 L562 894
@@ -119,7 +137,12 @@ L917 1169 L872 1186
 L840 1194 L777 1200
 L721 1192 L676 1174
 L641 1144 L629 1123 Z"
-fill="#fff"
-fill-rule="evenodd"/>
-</g>
-</svg>
+          fill="#fff"
+          fillRule="evenodd"
+        />
+      </g>
+    </svg>
+  );
+}
+
+export default memo(Logo);

@@ -2,6 +2,7 @@ import { Link, Outlet } from 'react-router-dom';
 import Navbar from './Navbar.jsx';
 import AdSlot from './AdSlot.jsx';
 import RouteLoadingBar from './RouteLoadingBar.jsx';
+import Logo from './Logo.jsx';
 
 export default function Layout() {
   return (
@@ -17,7 +18,10 @@ export default function Layout() {
         </div>
         <div className="mx-auto grid max-w-[1920px] grid-cols-1 gap-6 px-4 py-10 sm:grid-cols-2 sm:px-8 lg:grid-cols-4 pb-24 sm:pb-10">
           <div>
-            <p className="text-sm font-black tracking-[0.2em] text-narmax-red">NARMAX</p>
+            <div className="flex items-center gap-2.5">
+              <Logo className="h-7 w-7 rounded-md drop-shadow-[0_0_10px_rgba(224,182,83,0.3)]" />
+              <p className="text-sm font-black tracking-[0.2em] text-narmax-red">NARMAX</p>
+            </div>
             <p className="mt-3 text-sm text-zinc-400">Streaming-first cinematic interface inspired by modern OTT platforms.</p>
           </div>
           <div>

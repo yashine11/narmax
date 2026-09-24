@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import api from '../api/client.js';
 import AdminAvatar from './AdminAvatar.jsx';
+import Logo from './Logo.jsx';
 
 const NAV_LINKS = [
   { to: '/', label: 'Home', end: true },
@@ -271,10 +272,13 @@ export default function Navbar() {
 
             <Link
               to="/"
-              className="shrink-0 text-xl font-black tracking-wider text-white transition hover:opacity-90 sm:text-2xl"
+              className="group flex shrink-0 items-center gap-2.5 transition hover:opacity-95"
               onClick={() => setMobileMenuOpen(false)}
             >
-              NAR<span className="text-[#e50914]">MAX</span>
+              <Logo className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg drop-shadow-[0_0_12px_rgba(224,182,83,0.35)] transition-transform duration-300 group-hover:scale-105" />
+              <span className="text-xl font-black tracking-wider text-white sm:text-2xl">
+                NAR<span className="text-[#e50914]">MAX</span>
+              </span>
             </Link>
           </div>
 

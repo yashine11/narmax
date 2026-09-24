@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import toast from 'react-hot-toast';
+import Logo from '../components/Logo.jsx';
 
 export default function AuthCallback() {
   const [params] = useSearchParams();
@@ -61,7 +62,10 @@ export default function AuthCallback() {
             <div className="relative w-12 h-12 mx-auto">
               <div className="w-12 h-12 border-3 border-zinc-700 border-t-narmax-red rounded-full animate-spin" />
             </div>
-            <h2 className="text-xl font-bold text-white tracking-wide">NARMAX</h2>
+            <div className="flex items-center justify-center gap-2.5">
+              <Logo className="h-7 w-7 rounded-md drop-shadow-[0_0_10px_rgba(224,182,83,0.4)]" />
+              <h2 className="text-xl font-bold text-white tracking-wide">NARMAX</h2>
+            </div>
             <p className="text-sm text-zinc-400">{statusText}</p>
           </div>
         )}
