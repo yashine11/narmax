@@ -15,10 +15,32 @@ function ContinueWatchingRow({ items }) {
   const railRef = useRef(null);
   const { cardStyle } = usePreferences() || {};
   const isLandscape = cardStyle === 'backdrops';
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const checkScroll = () => {
+    if (!railRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = railRef.current;
+    setCanScrollLeft(scrollLeft > 10);
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+  };
+
+  useEffect(() => {
+    checkScroll();
+    const el = railRef.current;
+    if (!el) return;
+    el.addEventListener('scroll', checkScroll, { passive: true });
+    window.addEventListener('resize', checkScroll);
+    return () => {
+      el.removeEventListener('scroll', checkScroll);
+      window.removeEventListener('resize', checkScroll);
+    };
+  }, [items]);
 
   const scroll = (direction) => {
     if (!railRef.current) return;
-    railRef.current.scrollBy({ left: direction * 700, behavior: 'smooth' });
+    const distance = isLandscape ? 900 : 700;
+    railRef.current.scrollBy({ left: direction * distance, behavior: 'smooth' });
   };
 
   if (!items?.length) return null;
@@ -30,12 +52,13 @@ function ContinueWatchingRow({ items }) {
           <p className="text-xs font-bold uppercase tracking-[0.24em] text-cyan-200">For you</p>
           <h2 className="mt-2 text-2xl font-black text-white sm:text-3xl">Continue Watching</h2>
         </div>
-        <div className="flex gap-1.5">
+        <div className="flex gap-2">
           <button
             type="button"
             aria-label="Scroll left"
+            disabled={!canScrollLeft}
             onClick={() => scroll(-1)}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black/75 text-white transition hover:border-cyan-400/40 hover:bg-zinc-900"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-black/80 text-white backdrop-blur-md transition-all duration-200 hover:border-cyan-400/60 hover:bg-zinc-900 hover:scale-105 active:scale-95 disabled:opacity-25 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:border-white/15 disabled:hover:bg-black/80"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
@@ -44,8 +67,9 @@ function ContinueWatchingRow({ items }) {
           <button
             type="button"
             aria-label="Scroll right"
+            disabled={!canScrollRight}
             onClick={() => scroll(1)}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black/75 text-white transition hover:border-cyan-400/40 hover:bg-zinc-900"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-black/80 text-white backdrop-blur-md transition-all duration-200 hover:border-cyan-400/60 hover:bg-zinc-900 hover:scale-105 active:scale-95 disabled:opacity-25 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:border-white/15 disabled:hover:bg-black/80"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
@@ -56,13 +80,15 @@ function ContinueWatchingRow({ items }) {
 
       <div
         ref={railRef}
-        className="row-scroll mx-auto flex max-w-[1920px] gap-3 overflow-x-auto px-4 sm:gap-4 sm:px-8"
+        className="premium-row-scroll no-scrollbar mx-auto flex max-w-[1920px] gap-3 overflow-x-auto px-4 sm:gap-4 sm:px-8"
         style={{
           paddingTop: isLandscape ? '6.5rem' : '5rem',
           paddingBottom: isLandscape ? '7rem' : '5rem',
           marginTop: isLandscape ? '-6.5rem' : '-5rem',
           marginBottom: isLandscape ? '-7rem' : '-5rem',
           overflowY: 'visible',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
         }}
       >
         {items.map((item) => {

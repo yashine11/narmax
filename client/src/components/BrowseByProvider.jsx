@@ -148,7 +148,7 @@ export default function BrowseByProvider() {
         </h2>
       </div>
 
-      <div className="row-scroll flex items-center gap-4 overflow-x-auto pb-4 pt-1">
+      <div className="row-scroll no-scrollbar flex items-center gap-4 overflow-x-auto pb-4 pt-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         {PROVIDERS.map((provider) => (
           <button
             key={provider.id}
