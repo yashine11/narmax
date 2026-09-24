@@ -1,8 +1,8 @@
 // ─── Stream Service ───────────────────────────────────────────────────────────
 // 6 fixed streaming sources:
-//   1. Server 1 → cinextream.cc         (Mirror)
+//   1. Server 1 → vaplayer.ru           (Fast HD)
 //   2. Server 2 → moviesapi.to          (HD)
-//   3. Server 3 → vaplayer.ru           (Fast HD)
+//   3. Server 3 → cinextream.cc         (Mirror)
 //   4. Server 4 → codespecters.com      (New)
 //   5. Server 5 → vidsrc-embed.ru       (Backup)
 //   6. Server 6 → vidsrc.sbs            (No Ads)
@@ -47,12 +47,18 @@ function withVidsrcSbsParams(url, resumeAt) {
 
 const CODESPECTERS_KEY = 'nx_7797b8ae9f2ee43996b999a376ba58cb';
 
-function codespectorsMovie(tmdbId) {
-  return `https://api.codespecters.com/embed/movie/${tmdbId}?apikey=${CODESPECTERS_KEY}`;
+function codespectersMovie(tmdbId, resumeAt) {
+  const at = ensureResumeAt(resumeAt);
+  let url = `https://api.codespecters.com/embed/movie/${tmdbId}?apikey=${CODESPECTERS_KEY}`;
+  if (at) url += `&progress=${at}`;
+  return url;
 }
 
-function codespectorsTv(tmdbId, season, episode) {
-  return `https://api.codespecters.com/embed/tv/${tmdbId}/${season}/${episode}?apikey=${CODESPECTERS_KEY}`;
+function codespectersTv(tmdbId, season, episode, resumeAt) {
+  const at = ensureResumeAt(resumeAt);
+  let url = `https://api.codespecters.com/embed/tv/${tmdbId}/${season}/${episode}?apikey=${CODESPECTERS_KEY}`;
+  if (at) url += `&progress=${at}`;
+  return url;
 }
 
 // ─── MOVIE SOURCES ─────────────────────────────────────────────────────────────
@@ -73,12 +79,12 @@ function labeledMovie(tmdbId, options = {}) {
   else vidsrcParams.set('tmdb', tmdb);
 
   return [
-    // 1. Server 1 — Cinextream (Mirror)
+    // 1. Server 1 — VaPlayer (Fast HD)
     {
-      id: 'cinextream',
+      id: 'vaplayer_ru',
       label: 'Server 1',
-      badge: 'Mirror',
-      url: `https://cinextream.cc/api/embed/movie/${tmdb}?color=e50914`,
+      badge: 'Fast HD',
+      url: withResumeParam(`https://vaplayer.ru/embed/movie/${vaplayerId}`, resumeAt),
     },
     // 2. Server 2 — MoviesAPI (HD)
     {
@@ -87,19 +93,19 @@ function labeledMovie(tmdbId, options = {}) {
       badge: 'HD',
       url: withThemeAndTime(`https://moviesapi.to/movie/${tmdb}`, resumeAt),
     },
-    // 3. Server 3 — VaPlayer (Fast HD)
+    // 3. Server 3 — Cinextream (Mirror)
     {
-      id: 'vaplayer_ru',
+      id: 'cinextream',
       label: 'Server 3',
-      badge: 'Fast HD',
-      url: withResumeParam(`https://vaplayer.ru/embed/movie/${vaplayerId}`, resumeAt),
+      badge: 'Mirror',
+      url: `https://cinextream.cc/api/embed/movie/${tmdb}?color=e50914`,
     },
     // 4. Server 4 — CodeSpecters (New)
     {
       id: 'codespecters',
       label: 'Server 4',
       badge: 'New',
-      url: codespectorsMovie(tmdb),
+      url: codespectersMovie(tmdb, resumeAt),
     },
     // 5. Server 5 — VidSrc Embed (Backup)
     {
@@ -143,12 +149,12 @@ function labeledTv(tmdbId, season, episode, options = {}) {
   else vidsrcParams.set('tmdb', tmdb);
 
   return [
-    // 1. Server 1 — Cinextream (Mirror)
+    // 1. Server 1 — VaPlayer (Fast HD)
     {
-      id: 'cinextream',
+      id: 'vaplayer_ru',
       label: 'Server 1',
-      badge: 'Mirror',
-      url: `https://cinextream.cc/api/embed/tv/${tmdb}/${s}/${e}?color=e50914`,
+      badge: 'Fast HD',
+      url: withResumeParam(`https://vaplayer.ru/embed/tv/${vaplayerId}/${s}/${e}`, resumeAt),
     },
     // 2. Server 2 — MoviesAPI (HD)
     {
@@ -157,19 +163,19 @@ function labeledTv(tmdbId, season, episode, options = {}) {
       badge: 'HD',
       url: withThemeAndTime(`https://moviesapi.to/tv/${tmdb}/${s}/${e}`, resumeAt),
     },
-    // 3. Server 3 — VaPlayer (Fast HD)
+    // 3. Server 3 — Cinextream (Mirror)
     {
-      id: 'vaplayer_ru',
+      id: 'cinextream',
       label: 'Server 3',
-      badge: 'Fast HD',
-      url: withResumeParam(`https://vaplayer.ru/embed/tv/${vaplayerId}/${s}/${e}`, resumeAt),
+      badge: 'Mirror',
+      url: `https://cinextream.cc/api/embed/tv/${tmdb}/${s}/${e}?color=e50914`,
     },
     // 4. Server 4 — CodeSpecters (New)
     {
       id: 'codespecters',
       label: 'Server 4',
       badge: 'New',
-      url: codespectorsTv(tmdb, s, e),
+      url: codespectersTv(tmdb, s, e, resumeAt),
     },
     // 5. Server 5 — VidSrc Embed (Backup)
     {
